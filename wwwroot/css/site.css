@@ -1,0 +1,89 @@
+body {
+    background-color: #0B3D2E; /* Dark green background matching the login */
+    color: #F0EDE4; /* Light beige color for text */
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    background-color: #254D40; /* Slightly lighter green for the container background */
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+    width: 80%;
+    max-width: 800px;
+    margin: 50px auto;
+    text-align: center;
+}
+
+h2 {
+    font-size: 28px;
+    margin-bottom: 20px;
+    color: #F0EDE4; /* Matching text color */
+}
+
+.card {
+    background-color: #254D40; /* Same lighter green */
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+}
+
+.card-body {
+    padding: 20px;
+}
+
+.card-title {
+    font-size: 20px;
+    color: #F0EDE4;
+}
+
+.card-text {
+    color: #F0EDE4;
+}
+
+.btn-primary {
+    background-color: #FFD700; /* Golden button */
+    border-color: #FFD700;
+    color: #0B3D2E; /* Dark green text */
+    font-weight: bold;
+}
+
+.btn-primary:hover {
+    background-color: #FFC300; /* Slightly darker gold on hover */
+}
+/* Table text color matching the theme */
+.table {
+    color: #F0EDE4; /* Match the rest of the page */
+    background-color: #254D40;
+}
+
+.table th, .table td {
+    color: #F0EDE4; /* Ensure white/beige text */
+    vertical-align: middle;
+    padding: 12px;
+    word-wrap: break-word; /* Prevent text overflow */
+}
+
+.table td {
+    font-size: 14px;
+}
+
+/* Ellipsis for large text, e.g., UUID */
+.truncate-cell {
+    max-width: 150px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Tooltip styling for hover */
+[data-toggle="tooltip"] {
+    cursor: pointer;
+}
+
+/* Alternating row colors for better readability */
+.table-striped tbody tr:nth-of-type(odd) {
+    background-color: rgba(255, 255, 255, 0.05); /* Subtle stripe effect */
+}

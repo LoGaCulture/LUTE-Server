@@ -1,0 +1,100 @@
+@model LUTE_Server.ViewModels.PagedUserLogViewModel
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>User Logs</h2>
+
+<table class="table table-striped table-bordered">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>UUID</th>
+            <th>Game Name</th> <!-- Display the game name instead of Game ID -->
+            <th>Log Level</th>
+            <th>Message</th>
+            <th>Timestamp</th>
+            <th>Additional Data</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model.Logs != null)
+        {
+            @foreach (var logWithGameName in Model.Logs)
+            {
+                if (logWithGameName.Log != null) // Ensure Log is not null
+                {
+                    <tr>
+                        <td>@logWithGameName.Log?.Id</td>
+
+                        <!-- Make UUID clickable for filtering logs by UUID -->
+                        <td class="truncate-cell" data-toggle="tooltip" title="@logWithGameName.Log?.UUID">
+                            <a href="@Url.Action("UserLogs", new { uuid = logWithGameName.Log?.UUID })">@logWithGameName.Log?.UUID</a>
+                        </td>
+
+                        <!-- Make Game Name clickable for filtering logs by GameId -->
+                        <td>
+                            <a href="@Url.Action("UserLogs", new { gameId = logWithGameName.Log?.GameId })">@logWithGameName.GameName</a>
+                        </td>
+
+                        <td>@logWithGameName.Log?.LogLevel</td>
+                        <td>@logWithGameName.Log?.Message</td>
+                        <td>@logWithGameName.Log?.Timestamp</td>
+                        <td class="truncate-cell" data-toggle="tooltip" title="@logWithGameName.Log?.AdditionalData">@logWithGameName.Log?.AdditionalData</td>
+
+                        <!-- Individual Download Buttons -->
+                        <td>
+                            <form method="get" action="@Url.Action("DownloadLogs", "UserLog")">
+                                <input type="hidden" name="uuid" value="@logWithGameName.Log?.UUID" />
+                                <button type="submit" class="btn btn-secondary btn-sm">Download UUID Logs</button>
+                            </form>
+                            <form method="get" action="@Url.Action("DownloadLogs", "UserLog")">
+                                <input type="hidden" name="gameId" value="@logWithGameName.Log?.GameId" />
+                                <button type="submit" class="btn btn-secondary btn-sm">Download Game Logs</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            }
+        }
+        
+        
+    </tbody>
+</table>
+
+<!-- Pagination -->
+<div>
+    <ul class="pagination">
+        @if (Model.CurrentPage > 1)
+        {
+            <li class="page-item">
+                <a class="page-link" href="@Url.Action("UserLogs", new { pageNumber = Model.CurrentPage - 1, uuid = Model.UUIDFilter, gameId = Model.GameIdFilter })">Previous</a>
+            </li>
+        }
+
+        @for (int i = 1; i <= Model.TotalPages; i++)
+        {
+            <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+                <a class="page-link" href="@Url.Action("UserLogs", new { pageNumber = i, uuid = Model.UUIDFilter, gameId = Model.GameIdFilter })">@i</a>
+            </li>
+        }
+
+        @if (Model.CurrentPage < Model.TotalPages)
+        {
+            <li class="page-item">
+                <a class="page-link" href="@Url.Action("UserLogs", new { pageNumber = Model.CurrentPage + 1, uuid = Model.UUIDFilter, gameId = Model.GameIdFilter })">Next</a>
+            </li>
+        }
+    </ul>
+</div>
+
+<!-- Download Logs Button -->
+<div>
+    <form method="get" action="@Url.Action("DownloadLogs", "UserLog")">
+        <input type="hidden" name="uuid" value="@Model.UUIDFilter" />
+        <input type="hidden" name="gameId" value="@Model.GameIdFilter" />
+        <button type="submit" class="btn btn-primary">Download Logs</button>
+    </form>
+</div>

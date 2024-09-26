@@ -1,0 +1,74 @@
+@model IEnumerable<LUTE_Server.Models.Game>
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    <h2>Games</h2>
+
+    <!-- Games Table -->
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Created At</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var game in Model)
+            {
+                <tr>
+                    <td>@game.Id</td>
+                    <td>@game.Name</td>
+                    <td>@game.Description</td>
+                    <td>@game.CreatedAt</td>
+                    <td>
+                        <!-- Download Secrets button -->
+                        <a href="@Url.Action("DownloadSecrets", "Admin", new { gameId = game.Id })" class="btn btn-primary">
+                            Download Secrets
+                        </a>
+
+                        <!-- Regenerate Token button -->
+                        <form method="post" action="@Url.Action("RegenerateToken", "Admin", new { gameId = game.Id })" style="display:inline;">
+                            <button type="submit" class="btn btn-warning">Regenerate Token</button>
+                        </form>
+
+                        <!-- Edit button -->
+                        <a href="@Url.Action("EditGame", "Admin", new { gameId = game.Id })" class="btn btn-secondary">
+                            Edit
+                        </a>
+
+                        <!-- Delete button -->
+                        <form method="post" action="@Url.Action("DeleteGame", "Admin", new { gameId = game.Id })" style="display:inline;">
+                            <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this game?');">
+                                Delete
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <!-- Create New Game Form -->
+    <div class="row mt-5">
+        <div class="col-md-8 offset-md-2">
+            <h3>Create New Game</h3>
+            <form method="post" action="@Url.Action("CreateGame", "Admin")">
+                <div class="form-group">
+                    <label for="gameName">Name</label>
+                    <input type="text" class="form-control" id="gameName" name="name" placeholder="Enter game name" required>
+                </div>
+                <div class="form-group">
+                    <label for="gameDescription">Description</label>
+                    <textarea class="form-control" id="gameDescription" name="description" rows="3" placeholder="Enter game description" required></textarea>
+                </div>
+                <button type="submit" class="btn btn-success">Create Game</button>
+            </form>
+        </div>
+    </div>
+</div>

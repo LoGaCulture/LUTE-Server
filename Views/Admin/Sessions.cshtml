@@ -1,0 +1,37 @@
+@model IEnumerable<LUTE_Server.Models.Session>
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Active Sessions</h2>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Session ID</th>
+            <th>UUID</th>
+            <th>Game ID</th>
+            <th>Start Time</th>
+            <th>Last Activity</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var session in Model)
+        {
+            <tr>
+                <td>@session.Id</td>
+                <td>@session.UUID</td>
+                <td>@session.GameId</td>
+                <td>@session.StartTime</td>
+                <td>@session.LastActivity</td>
+                <td>@(session.IsActive ? "Active" : "Inactive")</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<form method="post" action="@Url.Action("TimeoutInactiveSessions", "Session")">
+    <button type="submit" class="btn btn-warning">Check and Timeout Inactive Sessions</button>
+</form>

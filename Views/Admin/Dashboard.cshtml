@@ -1,0 +1,73 @@
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container">
+    <h2>Admin Dashboard</h2>
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card mb-4 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Manage Users</h5>
+                    <p class="card-text">View and manage registered users in the system.</p>
+                    <a href="@Url.Action("Index", "Admin")" class="btn btn-primary">Go to Users</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card mb-4 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Manage Games</h5>
+                    <p class="card-text">View and manage games created by developers.</p>
+                    <a href="@Url.Action("Games", "Admin")" class="btn btn-primary">Go to Games</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card mb-4 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Manage Shared Variables</h5>
+                    <p class="card-text">View and manage shared variables for games.</p>
+                    <a href="@Url.Action("GameSharedVariables", "Admin")" class="btn btn-primary">Go to Shared Variables</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card mb-4 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">View Logs</h5>
+                    <p class="card-text">View logs for user activities and errors.</p>
+                    <a href="@Url.Action("UserLogs", "Admin")" class="btn btn-primary">Go to Logs</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card mb-4 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Manage Sessions</h5>
+                    <p class="card-text">View and manage active game sessions.</p>
+                    <a href="@Url.Action("Sessions", "Admin")" class="btn btn-primary">Go to Sessions</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card mb-4 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Download Data</h5>
+                    <p class="card-text">Download all system data in CSV format.</p>
+                    <form method="get" action="@Url.Action("DownloadAllData", "Admin")">
+                        <button type="submit" class="btn btn-primary">Download All Data</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

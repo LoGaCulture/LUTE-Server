@@ -1,0 +1,93 @@
+# Ignore Visual Studio temporary files, build results, and
+# user-specific files
+.vscode/
+.vscode/*
+.vs/
+.vs/*
+.vscode/*
+bin/
+obj/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.swp
+
+# Ignore build output directories
+bin/
+obj/
+
+# Rider and JetBrains settings
+.idea/
+*.sln.iml
+
+# Ignore ASP.NET runtime files
+*.log
+wwwroot/dist/
+#wwwroot/**/*.css
+wwwroot/**/*.map
+wwwroot/**/*.js
+node_modules/
+libman.json
+
+# NuGet packages
+*.nupkg
+*.snupkg
+.nuget/
+
+# Ignore database files
+*.mdf
+*.ldf
+*.db
+
+# Ignore SQLite database file
+*.sqlite
+*.sqlite3
+*.db
+*.db-shm
+*.db-wal
+
+# Ignore secrets and keys
+appsettings.Development.json
+appsettings.Production.json
+appsettings.Staging.json
+appsettings.Local.json
+appsettings.Test.json
+appsettings*.local.json
+secrets.json
+
+# Ignore logs and temporary files
+*.log
+logs/
+**/logs/
+
+# Ignore publish outputs
+artifacts/
+publish/
+
+# Ignore dependency manager directories
+node_modules/
+bower_components/
+
+# Ignore tool-specific files
+# Resharper
+_ReSharper*/
+*.[rR]e[Ss]harper
+
+# Rider
+.idea/
+.idea_modules/
+
+# User-specific files
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Ignore temporary, transient, or backup files
+~$*
+*.tmp
+*.bak
+*.swp
+*.DS_Store
+Thumbs.db

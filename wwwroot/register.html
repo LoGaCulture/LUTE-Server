@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - LoGa Culture</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #0B3D2E; /* Dark green background matching the logo */
+            color: #F0EDE4; /* Light beige color for text */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            background-color: #254D40; /* Slightly lighter green for the form background */
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            width: 300px;
+        }
+
+        .container svg {
+            width: 100px;
+            margin-bottom: 20px;
+        }
+
+        .container h1 {
+            margin-bottom: 20px;
+            font-size: 24px;
+            color: #F0EDE4; /* Matching text color */
+        }
+
+        .container input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: none;
+            border-radius: 5px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+
+        .container button {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: #FFD700; /* Golden color for the button */
+            color: #0B3D2E; /* Dark green text color for the button */
+            font-size: 18px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .container button:hover {
+            background-color: #FFC300; /* Slightly darker gold on hover */
+        }
+
+        .error {
+            color: red;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+    </style>
+    <script>
+        function register() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const errorText = document.getElementById('errorText');
+
+            // Clear any previous errors
+            errorText.textContent = '';
+
+            // Check if passwords match
+            if (password !== confirmPassword) {
+                errorText.textContent = 'Passwords do not match!';
+                return;
+            }
+
+            // Proceed with registration if passwords match
+            fetch('/api/auth/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ username, password })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.token) {
+                    // Redirect to Unity with the token
+                    window.location.href = 'http://localhost:5000/?token=' + data.token;
+                    
+                } else {
+                    alert('Registration failed');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <img src="logo.svg" alt="LoGa Culture Logo">
+        <h1>Register</h1>
+        <div id="errorText" class="error"></div> <!-- Error message placeholder -->
+        <input type="text" id="username" placeholder="Username" required>
+        <input type="password" id="password" placeholder="Password" required>
+        <input type="password" id="confirmPassword" placeholder="Confirm Password" required>
+        <button onclick="register()">Register</button>
+    </div>
+</body>
+</html>

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - LoGa Culture</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #0B3D2E; /* Dark green background matching the logo */
+            color: #F0EDE4; /* Light beige color for text */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            background-color: #254D40; /* Slightly lighter green for the form background */
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            width: 300px;
+        }
+
+        .container svg {
+            width: 100px;
+            margin-bottom: 20px;
+        }
+
+        .container h1 {
+            margin-bottom: 20px;
+            font-size: 24px;
+            color: #F0EDE4; /* Matching text color */
+        }
+
+        .container input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: none;
+            border-radius: 5px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+
+        .container button {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: #FFD700; /* Golden color for the button */
+            color: #0B3D2E; /* Dark green text color for the button */
+            font-size: 18px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .container button:hover {
+            background-color: #FFC300; /* Slightly darker gold on hover */
+        }
+
+        .error {
+            color: red;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+    </style>
+    <script>
+        // Utility to get query parameters from the URL
+        function getQueryParam(param) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(param);
+        }
+
+        function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const errorText = document.getElementById('errorText');
+            const fromUnity = getQueryParam('fromUnity'); // Get the 'fromUnity' flag
+
+            // Clear any previous errors
+            errorText.textContent = '';
+
+            if (username === '' || password === '') {
+                errorText.textContent = 'Both fields are required!';
+                return;
+
+            }
+
+            //print that we are logging in
+            console.log('Logging in with username:', username);
+
+            fetch('/api/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ username, password })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.token) {
+                    //print  in data.token
+                    console.log('Received token:', data.token);
+                    //print fromUnity
+                    console.log('fromUnity:', fromUnity);
+                    if (fromUnity === 'true') {
+                        // If accessed from Unity, redirect with token and close window
+                       
+                        setTimeout(() => { window.close(); }, 500); // Optional: close the window after redirection
+                        window.location.href = 'http://localhost:5000/?token=' + data.token;
+                    } else {
+                        //print
+                        
+                        // If accessed normally, set a cookie and redirect to a dashboard or home page
+                        //document.cookie = `auth_token=${data.token}; path=/; secure; HttpOnly;`;
+                        document.cookie = `auth_token=${data.token}; path=/;`;  // No secure flag for local dev
+
+                        window.location.href = '/admin/dashboard'; // Redirect to a dashboard or homepage after login
+                    }
+                } else {
+                    errorText.textContent = 'Login failed. Please check your credentials.';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                errorText.textContent = 'An error occurred. Please try again later.';
+            });
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <img src="logo.svg" alt="LoGa Culture Logo">
+        <h1>Login</h1>
+        <div id="errorText" class="error"></div> <!-- Error message placeholder -->
+        <input type="text" id="username" placeholder="Username" required>
+        <input type="password" id="password" placeholder="Password" required>
+        <button onclick="login()">Login</button>
+    </div>
+</body>
+</html>
