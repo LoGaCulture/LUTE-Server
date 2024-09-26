@@ -1,6 +1,6 @@
 # LUTE Server
 
-LUTE Server is a backend API server designed for handling user logs, game data, and shared variables for the (LUTE Unity tool)[https://github.com/LoGaCulture/LUTE].
+LUTE Server is a backend API server designed for handling user logs, game data, and shared variables for the [LUTE Unity tool](https://github.com/LoGaCulture/LUTE).
 
 ## Features
 
