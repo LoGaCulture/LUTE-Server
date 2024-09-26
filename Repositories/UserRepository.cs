@@ -43,11 +43,7 @@ namespace LUTE_Server.Repositories
         {
             var user = await _context.Users
                 .FirstOrDefaultAsync(u => u.Username == userName);
-            if (user == null)
-            {
-                // Handle the case where the user is not found, e.g., throw an exception or return a default value
-                throw new KeyNotFoundException($"User with username {userName} not found.");
-            }
+           
             return user;
         }        
 

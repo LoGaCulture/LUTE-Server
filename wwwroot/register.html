@@ -74,16 +74,16 @@
             const password = document.getElementById('password').value;
             const confirmPassword = document.getElementById('confirmPassword').value;
             const errorText = document.getElementById('errorText');
-
+    
             // Clear any previous errors
             errorText.textContent = '';
-
+    
             // Check if passwords match
             if (password !== confirmPassword) {
                 errorText.textContent = 'Passwords do not match!';
                 return;
             }
-
+    
             // Proceed with registration if passwords match
             fetch('/api/auth/register', {
                 method: 'POST',
@@ -92,14 +92,17 @@
                 },
                 body: JSON.stringify({ username, password })
             })
-            .then(response => response.json())
-            .then(data => {
-                if (data.token) {
-                    // Redirect to Unity with the token
-                    window.location.href = 'http://localhost:5000/?token=' + data.token;
-                    
+            .then(response => {
+                if (response.ok) {
+                    // Registration successful, redirect to login page
+                    window.location.href = '/login';
                 } else {
-                    alert('Registration failed');
+                    return response.json();
+                }
+            })
+            .then(data => {
+                if (data && data.errorMessage) {
+                    errorText.textContent = data.errorMessage;
                 }
             })
             .catch(error => {
@@ -107,6 +110,7 @@
             });
         }
     </script>
+    
 </head>
 <body>
     <div class="container">
