@@ -44,10 +44,17 @@ docker-compose up
 
 ### Configuration
 
-You can configure the server by modifying the `appsettings.json` file.
+You have to configure the server by modifying the `example.appsettings.json` file and renaming it to appsettings.json:
 
 ```json
 {
+  "ConnectionStrings": {
+    "DefaultConnection": "Data Source=YourDBName.db"
+  },
+  "Jwt": {
+    "Key": "SecretDevKeyVeryLongHasToBeForSecurity",
+    "Issuer": "Your Issuer"
+  },
   "Logging": {
     "LogLevel": {
       "Default": "Information",
@@ -56,17 +63,17 @@ You can configure the server by modifying the `appsettings.json` file.
     }
   },
   "AllowedHosts": "*",
-  "Jwt": {
-    "Key": "YOUR_SECRET_KEY",
-    "Issuer": "YOUR_ISSUER",
-    "Audience": "YOUR_AUDIENCE"
-  },
-  "ConnectionStrings": {
-    "DefaultConnection": "Data Source=YOUR_DATABASE.db"
-  }
+
+    /* Uncomment and edit the fields below to create a default admin user
+  "DefaultAdmin": {
+    "Username": "admin", // Change this username
+    "Password": "admin123", // Change this password
+    "Enabled": true // Set this to true to enable admin creation
+  }*/
 }
+
 ```
 
-
+To create a default admin user, please remove all the comments and change the username and password to something secure.
 
 
