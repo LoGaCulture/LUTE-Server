@@ -18,7 +18,7 @@ services:
       - ./ViewModels:/app/ViewModels
       - ./LUTE-Server.csproj:/app/LUTE-Server.csproj
       - ./appsettings.json:/app/appsettings.json
-      - ./appsettings.Development.json:/app/appsettings.Development.json
+#      - ./appsettings.Development.json:/app/appsettings.Development.json
       - ./LUTE-Server.db:/app/LUTE-Server.db
     environment:
       - ASPNETCORE_ENVIRONMENT=Development

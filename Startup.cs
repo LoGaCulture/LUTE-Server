@@ -13,6 +13,7 @@ using System.Text;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using LUTE_Server.Models;
 
 
 public class Startup
@@ -100,6 +101,53 @@ public class Startup
         app.UseHttpsRedirection();
         app.UseStaticFiles();
         app.UseRouting();
+
+
+         // Create service scope for dependency injection
+    using (var serviceScope = app.ApplicationServices.CreateScope())
+    {
+        var context = serviceScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        context.Database.EnsureCreated(); // Ensure the database is created
+
+        // Check appsettings for DefaultAdmin section
+        var config = serviceScope.ServiceProvider.GetRequiredService<IConfiguration>();
+        var defaultAdminConfig = config.GetSection("DefaultAdmin");
+        var username = defaultAdminConfig["Username"];
+        var password = defaultAdminConfig["Password"];
+        var enabled = bool.Parse(defaultAdminConfig["Enabled"] ?? "false");
+
+        if (enabled)
+        {
+            var userService = serviceScope.ServiceProvider.GetRequiredService<IUserService>();
+
+            // Check if admin already exists
+            if (string.IsNullOrEmpty(username))
+            {
+                throw new ArgumentNullException(nameof(username), "Username cannot be null or empty.");
+            }
+            var existingAdmin = userService.GetUserByUsernameAsync(username).Result;
+            if (existingAdmin == null)
+            {
+                // If admin doesn't exist, create the admin user
+                logger.LogInformation("Creating default admin user.");
+
+                var adminUser = new User
+                {
+                    Username = username,
+                    Role = UserRole.Admin // Assuming Admin is an enum value 1
+                };
+                if (string.IsNullOrEmpty(password))
+                {
+                    throw new ArgumentNullException(nameof(password), "Password cannot be null or empty.");
+                }
+                adminUser.SetPassword(password);
+                userService.AddUserAsync(adminUser).Wait();
+
+                logger.LogInformation("Default admin user created with username: {Username}", username);
+            }
+        }
+    }
+
 
         app.Use(async (context, next) =>
         {
