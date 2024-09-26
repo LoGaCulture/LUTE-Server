@@ -27,7 +27,7 @@ You can either run it directly on your machine or use Docker for containerizatio
 1. Clone the repository:
 
 ```bash
-git clone 
+git clone https://github.com/LoGaCulture/LUTE-Server.git
 ```
 
 2. Open the project in your preferred IDE.
