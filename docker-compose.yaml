@@ -4,22 +4,7 @@ services:
     ports:
       - "4577:5279"
     volumes:
-      - ./Controllers:/app/Controllers
-      - ./Data:/app/Data
-      - ./DTOs:/app/DTOs
-      - ./Migrations:/app/Migrations
-      - ./Models:/app/Models
-      - ./Repositories:/app/Repositories
-      - ./Services:/app/Services
-      - ./Views:/app/Views
-      - ./wwwroot:/app/wwwroot
-      - ./Startup.cs:/app/Startup.cs
-      - ./Program.cs:/app/Program.cs
-      - ./ViewModels:/app/ViewModels
-      - ./LUTE-Server.csproj:/app/LUTE-Server.csproj
-      - ./appsettings.json:/app/appsettings.json
-#      - ./appsettings.Development.json:/app/appsettings.Development.json
-      - ./LUTE-Server.db:/app/LUTE-Server.db
+      - ./:/app
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:5279

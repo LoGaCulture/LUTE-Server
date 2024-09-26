@@ -48,6 +48,7 @@ libman.json
 *.db-wal
 
 # Ignore secrets and keys
+appsettings.json
 appsettings.Development.json
 appsettings.Production.json
 appsettings.Staging.json
