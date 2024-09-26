@@ -171,7 +171,7 @@ namespace LUTE_Server.Controllers
                 Id = Guid.NewGuid().ToString(),  // Generate a new GUID as a string for Id
                 Name = name,
                 Description = description,
-                CreatedBy = userId, 
+                CreatedBy = userId,
                 CreatedAt = DateTime.UtcNow,
                 SecretKey = GenerateSecureToken()  // Generate secure token during game creation
             };
@@ -345,6 +345,21 @@ namespace LUTE_Server.Controllers
             return RedirectToAction("Games");
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateUserRole(int userId, int newRole)
+        {
+            var user = await _userService.GetUserByIdAsync(userId);
+            if (user == null)
+            {
+                return NotFound("User not found.");
+            }
+
+            user.Role = (UserRole)newRole; // Cast the new role to the correct enum type
+            await _userService.UpdateUserAsync(user);
+
+            return RedirectToAction("Index");
+        }
 
 
 

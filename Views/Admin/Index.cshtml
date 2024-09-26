@@ -15,19 +15,36 @@
             <th>ID</th>
             <th>Username</th>
             <th>Role</th>
+            <th>Action</th>
         </tr>
     </thead>
     <tbody>
-    @foreach (var user in Model.Users)
-    {
-        <tr>
-            <td>@user.Id</td>
-            <td>@user.Username</td>
-            <td>@user.Role</td>
-        </tr>
-    }
+        @foreach (var user in Model.Users)
+        {
+            <tr>
+                <td>@user.Id</td>
+                <td>@user.Username</td>
+                <td>
+                    <form method="post" action="/Admin/UpdateUserRole">
+                        @Html.AntiForgeryToken()
+
+                        <select name="newRole" class="form-control">
+                            <option value="0" @(user.Role == LUTE_Server.Models.UserRole.Admin ? "selected" : "")>Admin</option>
+                            <option value="1" @(user.Role == LUTE_Server.Models.UserRole.GameDeveloper ? "selected" : "")>Developer</option>
+                            <option value="2" @(user.Role == LUTE_Server.Models.UserRole.User ? "selected" : "")>User</option>
+                        </select>
+                        
+                        <!-- Hidden input to ensure the correct user is updated -->
+                        <input type="hidden" name="userId" value="@user.Id" />
+                        
+                        <button type="submit" class="btn btn-primary">Update Role</button>
+                    </form>
+                </td>
+            </tr>
+        }
     </tbody>
 </table>
+
 
 <div>
     <ul class="pagination">
