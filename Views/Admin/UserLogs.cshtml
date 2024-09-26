@@ -5,6 +5,13 @@
     ViewData["Title"] = "User Logs";
 }
 
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["SuccessMessage"]
+    </div>
+}
+
 <h2>User Logs</h2>
 
 <table class="table table-striped table-bordered">
@@ -54,6 +61,11 @@
                             <form method="get" action="@Url.Action("DownloadLogs", "UserLog")">
                                 <input type="hidden" name="gameId" value="@logWithGameName.Log?.GameId" />
                                 <button type="submit" class="btn btn-secondary btn-sm">Download Game Logs</button>
+                            </form>
+                        <!-- Delete Button -->
+                            <form method="post" action="@Url.Action("DeleteLog", "UserLog", new { logId = logWithGameName.Log?.Id })" onsubmit="return confirm('Are you sure you want to delete this log?');">
+                                <input type="hidden" name="logId" value="@logWithGameName.Log?.Id" />
+                                <button type="submit" class="btn btn-danger btn-sm">Delete</button>
                             </form>
                         </td>
                     </tr>

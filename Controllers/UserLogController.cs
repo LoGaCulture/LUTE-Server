@@ -130,5 +130,23 @@ namespace LUTE_Server.Controllers
             return View(viewModel);  // Return view with filtered and paginated logs
         }
 
+
+        [HttpPost("delete/{logId}")]
+        [Authorize(Roles = "Admin")]  // Only admins can delete logs
+        public IActionResult DeleteLog(int logId)
+        {
+            var log = _context.UserLogs.FirstOrDefault(l => l.Id == logId);
+            if (log == null)
+            {
+                return NotFound("Log not found.");
+            }
+
+            _context.UserLogs.Remove(log);
+            _context.SaveChanges();
+
+            TempData["SuccessMessage"] = "Log deleted successfully!";
+            return RedirectToAction("UserLogs","Admin");  // Redirect back to the logs page
+        }
+
     }
 }
