@@ -15,10 +15,10 @@
   },
   "AllowedHosts": "*",
 
-    /* Uncomment and edit the fields below to create a default admin user
+    // Uncomment and edit the fields below to create a default admin user
   "DefaultAdmin": {
     "Username": "admin", // Change this username
     "Password": "admin123", // Change this password
     "Enabled": true // Set this to true to enable admin creation
-  }*/
+  }
 }
