@@ -39,21 +39,21 @@ git clone https://github.com/LoGaCulture/LUTE-Server.git
 Run docker-compose:
 
 ```bash 
-docker-compose up
+docker compose up
 ```
 
 ### Configuration
 
-You have to configure the server by modifying the `example.appsettings.json` file and renaming it to appsettings.json:
+You have to configure the server by modifying the `example.appsettings.json` file and renaming it to `appsettings.json`:
 
 ```json
 {
   "ConnectionStrings": {
-    "DefaultConnection": "Data Source=YourDBName.db"
+    "DefaultConnection": "Data Source=YourDBName.db" //Change this to the name of the database you want
   },
   "Jwt": {
-    "Key": "SecretDevKeyVeryLongHasToBeForSecurity",
-    "Issuer": "Your Issuer"
+    "Key": "SecretDevKeyVeryLongHasToBeForSecurity", //Change this to a secure key for JWT tokens
+    "Issuer": "Your Issuer" //Change this to your organisation or anything
   },
   "Logging": {
     "LogLevel": {
@@ -64,12 +64,12 @@ You have to configure the server by modifying the `example.appsettings.json` fil
   },
   "AllowedHosts": "*",
 
-    /* Uncomment and edit the fields below to create a default admin user
+    // Uncomment and edit the fields below to create a default admin user
   "DefaultAdmin": {
     "Username": "admin", // Change this username
     "Password": "admin123", // Change this password
-    "Enabled": true // Set this to true to enable admin creation
-  }*/
+    "Enabled": true // Set this to true to enable admin creation on first load
+  }
 }
 
 ```
