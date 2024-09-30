@@ -41,7 +41,6 @@ namespace LUTE_Server.Controllers
             var game = _context.Games.FirstOrDefault(g => g.SecretKey == secretKey);
             if (game == null)
             {
-                _logger.LogWarning("Invalid secret key: {SecretKey}", secretKey);
                 return Unauthorized("Invalid secret key.");
             }
 
@@ -64,21 +63,19 @@ namespace LUTE_Server.Controllers
             }).ToList();
 
             // Print received logs for debugging
-            foreach (var log in logsToSave)
-            {
-                _logger.LogInformation("Received log for Game ID {GameId}: {Log}", game.Id, log);
-            }
+            //foreach (var log in logsToSave)
+            //{
+            //    _logger.LogInformation("Received log for Game ID {GameId}: {Log}", game.Id, log);
+            //}
 
             try
             {
                 // Process the logs and associate them with the game
                 await _loggingService.LogBulkAsync(logsToSave.ToArray());
-                _logger.LogInformation("{Count} logs processed successfully for Game ID {GameId}", logsToSave.Count, game.Id);
                 return Ok(new { message = "Logs received successfully", count = logsToSave.Count });
             }
             catch (System.Exception ex)
             {
-                _logger.LogError(ex, "Error while processing logs for Game ID {GameId}", game.Id);
                 return StatusCode(500, "An error occurred while processing logs.");
             }
         }
