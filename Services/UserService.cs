@@ -60,11 +60,7 @@ namespace LUTE_Server.Services
                 return new AuthResult { Success = false, ErrorMessage = "Username already exists" };
             }
 
-            if(!Enum.TryParse(request.Role, true, out UserRole role))
-            {
-                _logger.LogWarning("Invalid role {Role}", request.Role);
-                return new AuthResult { Success = false, ErrorMessage = "Invalid role" };
-            }
+            UserRole role = UserRole.User;
 
             _logger.LogInformation("Assigned role: {Role}", role);
             var user = new User
