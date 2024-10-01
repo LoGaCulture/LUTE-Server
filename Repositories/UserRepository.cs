@@ -39,13 +39,13 @@ namespace LUTE_Server.Repositories
         }
 
         // Query user by username
-        public async Task<User> GetUserByUsernameAsync(string userName)
+        public async Task<User?> GetUserByUsernameAsync(string userName)
         {
             var user = await _context.Users
                 .FirstOrDefaultAsync(u => u.Username == userName);
-           
+
             return user;
-        }        
+        }
 
         public async Task UpdateUserAsync(User user)
         {

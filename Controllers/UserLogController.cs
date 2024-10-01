@@ -76,6 +76,7 @@ namespace LUTE_Server.Controllers
             }
             catch (System.Exception ex)
             {
+                _logger.LogError(ex, "An error occurred while processing logs.");
                 return StatusCode(500, "An error occurred while processing logs.");
             }
         }

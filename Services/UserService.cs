@@ -27,7 +27,7 @@ namespace LUTE_Server.Services
             return await _userRepository.GetUserByIdAsync(id);
         }
 
-        public async Task<User> GetUserByUsernameAsync(string userName)
+        public async Task<User?> GetUserByUsernameAsync(string userName)
         {
             return await _userRepository.GetUserByUsernameAsync(userName);
         }

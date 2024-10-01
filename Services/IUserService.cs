@@ -9,7 +9,7 @@ namespace LUTE_Server.Services
     {
         Task<IEnumerable<User>> GetUsersAsync();
         Task<User> GetUserByIdAsync(int id);
-        Task<User> GetUserByUsernameAsync(string userName); 
+        Task<User?> GetUserByUsernameAsync(string userName); 
         Task AddUserAsync(User user);
         Task UpdateUserAsync(User user);
         Task DeleteUserAsync(int id);

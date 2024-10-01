@@ -1,3 +1,5 @@
+[![.NET Build and Publish](https://github.com/LoGaCulture/LUTE-Server/actions/workflows/dotnet.yml/badge.svg?branch=main)](https://github.com/LoGaCulture/LUTE-Server/actions/workflows/dotnet.yml)
+
 # LUTE Server
 
 LUTE Server is a backend API server designed for handling user logs, game data, and shared variables for the [LUTE Unity tool](https://github.com/LoGaCulture/LUTE).
