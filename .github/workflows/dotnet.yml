@@ -1,0 +1,52 @@
+name: .NET Build and Publish
+
+# Trigger the workflow on push or pull request events
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+# Define the jobs to run
+jobs:
+  build:
+    # The OS on which the job will run
+    runs-on: ubuntu-latest
+
+    # Set up .NET and build the project
+    steps:
+      # Check out the repository
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Set up .NET Core
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '8.0'  
+
+      # Restore dependencies
+      - name: Restore dependencies
+        run: dotnet restore
+
+      # Build the project
+      - name: Build the project
+        run: dotnet build --configuration Release --no-restore
+
+      # Publish the project (creates a self-contained build)
+      - name: Publish the project
+        run: dotnet publish --configuration Release --output ./output
+        
+        # Zip the output folder
+      - name: Zip output
+        run: zip -r LUTE-Server-build.zip ./output
+      
+      # Upload the zipped artifact
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: LUTE-Server-artifact
+          path: LUTE-Server-build.zip
+
