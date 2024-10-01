@@ -35,8 +35,8 @@ jobs:
       - name: Get latest tag
         id: get_tag
         run: |
-        tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
-        echo "tag=$tag" >> $GITHUB_ENV
+          tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          echo "tag=$tag" >> $GITHUB_ENV
 
       - name: Get short SHA if no tag exists
         id: get_sha
