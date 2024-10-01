@@ -4,10 +4,7 @@ name: .NET Build and Publish
 on:
   push:
     branches:
-      - main
-  pull_request:
-    branches:
-      - main
+      - publish
 
 # Define the jobs to run
 jobs:
@@ -31,22 +28,47 @@ jobs:
       - name: Restore dependencies
         run: dotnet restore
 
-      # Build the project
-      - name: Build the project
-        run: dotnet build --configuration Release --no-restore
-
       # Publish the project (creates a self-contained build)
       - name: Publish the project
         run: dotnet publish --configuration Release --output ./output
         
+      - name: Get latest tag
+        id: get_tag
+        run: |
+        tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+        echo "tag=$tag" >> $GITHUB_ENV
+
+      - name: Get short SHA if no tag exists
+        id: get_sha
+        run: echo "short_sha=${GITHUB_SHA::7}" >> $GITHUB_ENV
+
         # Zip the output folder
       - name: Zip output
         run: zip -r LUTE-Server-build.zip ./output
       
-      # Upload the zipped artifact
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: LUTE-Server-artifact
-          path: LUTE-Server-build.zip
 
+      - name: Create GitHub Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ env.tag || env.short_sha }}
+          release_name: "LUTE-Server Release ${{ env.tag || env.short_sha }}"
+          body: |
+            ## Release Details
+            - Tag: ${{ env.tag || env.short_sha }}
+            - Commit: ${{ env.short_sha }}
+            - Date: ${{steps.get_tag.outputs.date}}
+          draft: false
+          prerelease: false
+
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./LUTE-Server-build.zip
+          asset_name: LUTE-Server-build.zip
+          asset_content_type: application/zip
