@@ -59,6 +59,6 @@ jobs:
             ## Release Details
             - Tag: ${{ env.tag != '' && env.tag || env.short_sha }}
             - Commit: ${{ env.short_sha }}
-          artifacts: "${{ env.tag != '' && 'LUTE-Server-' + env.tag || 'LUTE-Server-' + env.short_sha }}.zip"
+          artifacts: "${{ env.tag != '' && format('LUTE-Server-{0}', env.tag) || format('LUTE-Server-{0}', env.short_sha) }}.zip"
           artifactContentType: "application/zip"
           prerelease: false
