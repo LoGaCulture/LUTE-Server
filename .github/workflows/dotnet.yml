@@ -27,7 +27,7 @@ jobs:
         run: dotnet restore
 
       - name: Publish the project
-        run: dotnet publish --configuration Release --output ./output
+        run: dotnet publish --configuration Release --output ./Release-${{ github.sha }}
 
       - name: Get latest tag
         id: get_tag
@@ -40,7 +40,13 @@ jobs:
         run: echo "short_sha=${GITHUB_SHA::7}" >> $GITHUB_ENV
 
       - name: Zip output
-        run: zip -r LUTE-Server-build.zip ./output
+        run: |
+          if [ -n "${{ env.tag }}" ]; then \
+            zip_name="LUTE-Server-${{ env.tag }}.zip"; \
+          else \
+            zip_name="LUTE-Server-${{ env.short_sha }}.zip"; \
+          fi; \
+          cd ./Release-${{ github.sha }} && zip -r ../$zip_name ./*
 
       # Use the new ncipollo/release-action to create a release and upload artifacts
       - name: Create and Upload Release
@@ -53,6 +59,6 @@ jobs:
             ## Release Details
             - Tag: ${{ env.tag != '' && env.tag || env.short_sha }}
             - Commit: ${{ env.short_sha }}
-          artifacts: "LUTE-Server-build.zip"
+          artifacts: "${{ env.tag != '' && 'LUTE-Server-' + env.tag || 'LUTE-Server-' + env.short_sha }}.zip"
           artifactContentType: "application/zip"
           prerelease: false
