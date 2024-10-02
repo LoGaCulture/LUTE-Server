@@ -1,37 +1,31 @@
 name: .NET Build and Publish
 
-# Trigger the workflow on push or pull request events
 on:
   push:
     branches:
       - publish
 
-# Define the jobs to run
 jobs:
   build:
-    # The OS on which the job will run
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
-    # Set up .NET and build the project
     steps:
-      # Check out the repository
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Set up .NET Core
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0'  
+          dotnet-version: '8.0'
 
-      # Restore dependencies
       - name: Restore dependencies
         run: dotnet restore
 
-      # Publish the project (creates a self-contained build)
       - name: Publish the project
         run: dotnet publish --configuration Release --output ./output
-        
+
       - name: Get latest tag
         id: get_tag
         run: |
@@ -42,33 +36,20 @@ jobs:
         id: get_sha
         run: echo "short_sha=${GITHUB_SHA::7}" >> $GITHUB_ENV
 
-        # Zip the output folder
       - name: Zip output
         run: zip -r LUTE-Server-build.zip ./output
-      
 
-      - name: Create GitHub Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # Use the new ncipollo/release-action to create a release and upload artifacts
+      - name: Create and Upload Release
+        uses: ncipollo/release-action@v1
         with:
-          tag_name: ${{ env.tag || env.short_sha }}
-          release_name: "LUTE-Server Release ${{ env.tag || env.short_sha }}"
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ env.tag != '' && env.tag || env.short_sha }} # Use the tag or fallback to short SHA
+          name: "LUTE-Server Release ${{ env.tag != '' && env.tag || env.short_sha }}"
           body: |
             ## Release Details
-            - Tag: ${{ env.tag || env.short_sha }}
+            - Tag: ${{ env.tag != '' && env.tag || env.short_sha }}
             - Commit: ${{ env.short_sha }}
-            - Date: ${{steps.get_tag.outputs.date}}
-          draft: false
+          artifacts: "LUTE-Server-build.zip"
+          artifactContentType: "application/zip"
           prerelease: false
-
-      - name: Upload Release Asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./LUTE-Server-build.zip
-          asset_name: LUTE-Server-build.zip
-          asset_content_type: application/zip
