@@ -12,7 +12,7 @@ namespace LUTE_Server.Data
 
         public DbSet<User> Users { get; set; }
         public DbSet<Game> Games { get; set; }
-        public DbSet<GameSharedVariable> GameSharedVariables { get; set; }
+        public DbSet<SharedVariable> SharedVariables { get; set; }
         public DbSet<UserLog> UserLogs { get; set; }
         public DbSet<Session> Sessions { get; set; } 
 

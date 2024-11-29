@@ -1,4 +1,4 @@
-@model IEnumerable<LUTE_Server.Models.GameSharedVariable>
+@model IEnumerable<LUTE_Server.Models.SharedVariable>
 
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -13,6 +13,7 @@
             <th>ID</th>
             <th>Game ID</th>
             <th>UUID</th>
+            <th>Variable Type</th>
             <th>Variable Name</th>
             <th>Data</th>
             <th>Created At</th>
@@ -25,6 +26,7 @@
                 <td>@variable.Id</td>
                 <td>@variable.GameId</td>
                 <td>@variable.UUID</td>
+                <td>@variable.VariableType</td>
                 <td>@variable.VariableName</td>
                 <td>@variable.Data</td>
                 <td>@variable.CreatedAt</td>

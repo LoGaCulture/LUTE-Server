@@ -61,9 +61,9 @@ namespace LUTE_Server.Controllers
             csv.AppendLine();
 
             // Download Game Shared Variables
-            csv.AppendLine("GameSharedVariables");
+            csv.AppendLine("SharedVariables");
             csv.AppendLine("Id,GameId,UUID,VariableName,Data,CreatedAt");
-            var sharedVariables = _context.GameSharedVariables.ToList();
+            var sharedVariables = _context.SharedVariables.ToList();
             foreach (var variable in sharedVariables)
             {
                 csv.AppendLine($"{variable.Id},{variable.GameId},{variable.UUID},{variable.VariableName},{variable.Data},{variable.CreatedAt}");
@@ -238,9 +238,9 @@ namespace LUTE_Server.Controllers
             return File(fileBytes, "text/plain", fileName);
         }
 
-        public IActionResult GameSharedVariables()
+        public IActionResult SharedVariables()
         {
-            var sharedVariables = _context.GameSharedVariables.ToList();
+            var sharedVariables = _context.SharedVariables.ToList();
             return View(sharedVariables);
         }
         public IActionResult UserLogs(int pageNumber = 1, string? uuid = null, string? gameId = null)
@@ -284,9 +284,9 @@ namespace LUTE_Server.Controllers
             return View(viewModel);  // Return view with filtered and paginated logs
         }
 
-        public IActionResult DownloadGameSharedVariables()
+        public IActionResult DownloadSharedVariables()
         {
-            var sharedVariables = _context.GameSharedVariables.ToList();
+            var sharedVariables = _context.SharedVariables.ToList();
 
             var csv = new StringBuilder();
             csv.AppendLine("Id,GameId,UUID,VariableName,Data,CreatedAt");
@@ -296,7 +296,7 @@ namespace LUTE_Server.Controllers
                 csv.AppendLine($"{variable.Id},{variable.GameId},{variable.UUID},{variable.VariableName},{variable.Data},{variable.CreatedAt}");
             }
 
-            var fileName = "GameSharedVariables.csv";
+            var fileName = "SharedVariables.csv";
             return File(Encoding.UTF8.GetBytes(csv.ToString()), "text/csv", fileName);
         }
 

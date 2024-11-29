@@ -50,7 +50,7 @@ namespace LUTE_Server.Controllers
             await _context.SaveChangesAsync();
 
             // Retrieve shared variables or other session data here
-            var sharedVariables = await _context.GameSharedVariables
+            var sharedVariables = await _context.SharedVariables
                 .Where(v => v.GameId == request.GameId)
                 .ToListAsync();
 
@@ -102,12 +102,12 @@ namespace LUTE_Server.Controllers
     public class SessionStartRequest
     {
         public required string UUID { get; set; }
-        public int GameId { get; set; }
+        public string GameId { get; set; }
     }
 
     public class SessionEndRequest
     {
         public required string UUID { get; set; }
-        public int GameId { get; set; }
+        public string GameId { get; set; }
     }
 }

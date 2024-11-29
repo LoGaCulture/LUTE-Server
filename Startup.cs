@@ -32,6 +32,7 @@ public class Startup
 
         services.AddControllersWithViews();
         services.AddRazorPages();
+        services.AddSwaggerGen();
 
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IUserService, UserService>();
@@ -40,8 +41,9 @@ public class Startup
         services.AddScoped<IGameRepository, GameRepository>();
         services.AddScoped<IGameService, GameService>();
         services.AddScoped<ILoggingService, LoggingService>();
-        services.AddScoped<IGameSharedVariableService, GameSharedVariableService>();
-        services.AddScoped<IGameSharedVariableRepository, GameSharedVariableRepository>();
+        services.AddScoped<ISharedVariableService, SharedVariableService>();
+        //services.AddScoped<IGameSharedVariableService, GameSharedVariableService>();
+        //services.AddScoped<IGameSharedVariableRepository, GameSharedVariableRepository>();
         services.AddScoped<IUserService, UserService>();
 
         var jwtKey = Configuration["Jwt:Key"] ?? Environment.GetEnvironmentVariable("JWT_KEY") ?? throw new ArgumentNullException("JWT key is not configured.");
@@ -86,6 +88,15 @@ public class Startup
         }
 
 
+        app.UseSwagger();
+
+        app.UseSwaggerUI(c =>
+        {
+            c.SwaggerEndpoint("/swagger/v1/swagger.json", "LUTE API V1");
+            c.DefaultModelsExpandDepth(-1);
+            c.RoutePrefix = "api";
+        });
+       
         var serviceScopeFactory = app.ApplicationServices.GetService<IServiceScopeFactory>();
         if (serviceScopeFactory == null)
         {
