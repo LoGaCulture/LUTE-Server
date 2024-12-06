@@ -156,5 +156,34 @@ namespace LUTE_Server.Controllers
         }
 
         
+        //delete a shared variable through post request with id, only admins can do this
+        [HttpPost("delete/{id}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> DeleteSharedVariable(int id)
+        {
+            //log the request
+            _logger.LogInformation("Received request to delete shared variable");
+           
+            //find the variable
+            var sharedVariable = await _context.SharedVariables.FindAsync(id);
+
+            if(sharedVariable == null)
+            {
+                _logger.LogWarning("Shared variable with id {Id} not found.", id);
+                return NotFound("Shared variable not found.");
+            }
+
+            _context.SharedVariables.Remove(sharedVariable);
+
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("Deleted shared variable with id {Id}.", id);
+
+            return RedirectToAction("SharedVariables", "Admin");
+
+           
+        }
+
+
     }
 }

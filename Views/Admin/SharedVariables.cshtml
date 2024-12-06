@@ -17,6 +17,7 @@
             <th>Variable Name</th>
             <th>Data</th>
             <th>Created At</th>
+            <th>Actions</th>
         </tr>
     </thead>
     <tbody>
@@ -30,7 +31,13 @@
                 <td>@variable.VariableName</td>
                 <td>@variable.Data</td>
                 <td>@variable.CreatedAt</td>
+                <td>
+                    <form method="post" action="@Url.Action("DeleteSharedVariable", "SharedVariable", new { id = variable.Id })" onsubmit="return confirm('Are you sure you want to delete this shared variable?');">
+                        <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                    </form>
+                </td>
             </tr>
         }
     </tbody>
 </table>
+
