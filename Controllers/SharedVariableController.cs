@@ -147,7 +147,8 @@ namespace LUTE_Server.Controllers
             //only select the variables that match the game id and the variable name and return only the variable name variable type data and timestamp
             var sharedVariables = await _context.SharedVariables
                 .Where(v => v.GameId == game.Id && v.VariableName == variableName)
-                .OrderByDescending(v => v.CreatedAt)
+                //randomize the order
+                .OrderBy(v => Guid.NewGuid())
                 .Take(count)
                 .Select(v => new { v.VariableName, v.VariableType, v.Data, v.CreatedAt })
                 .ToListAsync();
