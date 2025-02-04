@@ -106,6 +106,36 @@ namespace LUTE_Server.Controllers
 
         }
 
+        [HttpGet("games")]
+        public async Task<IActionResult> GetGames()
+        {
+            var games = await _context.Games
+                .Select(g => new { g.Id, g.Name })
+                .ToListAsync();
+            return Ok(games);
+        }
+
+        [HttpGet("variables")]
+        public async Task<IActionResult> GetVariablesForGame([FromQuery] string gameId)
+        {
+            var variables = await _context.SharedVariables
+                .Where(v => v.GameId == gameId)
+                .Select(v => v.VariableName)
+                .Distinct()
+                .ToListAsync();
+            return Ok(variables);
+        }
+
+        [HttpGet("uuids")]
+        public async Task<IActionResult> GetUuidsForVariable([FromQuery] string gameId, [FromQuery] string variableName)
+        {
+            var uuids = await _context.SharedVariables
+                .Where(v => v.GameId == gameId && v.VariableName == variableName)
+                .Select(v => new { v.UUID, v.Data, v.CreatedAt })
+                .ToListAsync();
+            return Ok(uuids);
+        }
+
         //get shared variables for a game
         //secret key is required to access this endpoint
         //a name for the variable is required

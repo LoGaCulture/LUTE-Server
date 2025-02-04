@@ -1,48 +1,121 @@
-@model IEnumerable<LUTE_Server.Models.SharedVariable>
-
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
     ViewData["Title"] = "Shared Variables";
 }
 
-<h2 class="text-center text-light">Game Shared Variables</h2>
+<div class="container">
+    <h2>Shared Variables Browser</h2>
 
-<div class="table-responsive">
-    <table class="table table-dark table-striped table-bordered">
-        <thead>
-            <tr>
-                <th scope="col">ID</th>
-                <th scope="col">Game ID</th>
-                <th scope="col">UUID</th>
-                <th scope="col">Variable Type</th>
-                <th scope="col">Variable Name</th>
-                <th scope="col">Data</th>
-                <th scope="col">Created At</th>
-                <th scope="col">Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var variable in Model)
-            {
-                <tr>
-                    <td>@variable.Id</td>
-                    <td class="text-truncate" style="max-width: 100px;" data-bs-toggle="tooltip" title="@variable.GameId">
-                        @variable.GameId
-                    </td>
-                    <td class="text-truncate" style="max-width: 100px;" data-bs-toggle="tooltip" title="@variable.UUID">
-                        @variable.UUID
-                    </td>
-                    <td>@variable.VariableType</td>
-                    <td>@variable.VariableName</td>
-                    <td>@variable.Data</td>
-                    <td>@variable.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss")</td>
-                    <td>
-                        <form method="post" action="@Url.Action("DeleteSharedVariable", "SharedVariable", new { id = variable.Id })" onsubmit="return confirm('Are you sure you want to delete this shared variable?');">
-                            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
-                        </form>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
+    <!-- Dropdown for Games -->
+    <div class="mb-4">
+        <label for="gamesDropdown">Select a Game:</label>
+        <select id="gamesDropdown" class="form-select">
+            <option value="">-- Select a Game --</option>
+            <!-- Options populated dynamically -->
+        </select>
+    </div>
+
+    <!-- Dropdown for Variables -->
+    <div class="mb-4" id="variablesSection" style="display: none;">
+        <label for="variablesDropdown">Select a Variable:</label>
+        <select id="variablesDropdown" class="form-select">
+            <option value="">-- Select a Variable --</option>
+            <!-- Options populated dynamically -->
+        </select>
+    </div>
+
+    <!-- Table for UUIDs -->
+    <div id="uuidsSection" style="display: none;">
+        <h3>UUIDs for Selected Variable</h3>
+        <div class="table-responsive">
+            <table class="table table-striped table-dark">
+                <thead>
+                    <tr>
+                        <th>UUID</th>
+                        <th>Data</th>
+                        <th>Created At</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="uuidsTableBody">
+                    <!-- Rows populated dynamically -->
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const gamesDropdown = document.getElementById("gamesDropdown");
+        const variablesDropdown = document.getElementById("variablesDropdown");
+        const variablesSection = document.getElementById("variablesSection");
+        const uuidsSection = document.getElementById("uuidsSection");
+        const uuidsTableBody = document.getElementById("uuidsTableBody");
+
+        // Fetch games on page load
+        fetch("/api/SharedVariable/games")
+            .then(response => response.json())
+            .then(games => {
+                games.forEach(game => {
+                    const option = document.createElement("option");
+                    option.value = game.id;
+                    option.textContent = game.name;
+                    gamesDropdown.appendChild(option);
+                });
+            });
+
+        // When a game is selected, fetch variables for that game
+        gamesDropdown.addEventListener("change", function () {
+            const gameId = gamesDropdown.value;
+            if (!gameId) {
+                variablesSection.style.display = "none";
+                uuidsSection.style.display = "none";
+                return;
+            }
+
+            fetch(`/api/SharedVariable/variables?gameId=${gameId}`)
+                .then(response => response.json())
+                .then(variables => {
+                    variablesDropdown.innerHTML = '<option value="">-- Select a Variable --</option>';
+                    variables.forEach(variableName => {
+                        const option = document.createElement("option");
+                        option.value = variableName;
+                        option.textContent = variableName;
+                        variablesDropdown.appendChild(option);
+                    });
+                    variablesSection.style.display = "block";
+                });
+        });
+
+        // When a variable is selected, fetch UUIDs and data
+        variablesDropdown.addEventListener("change", function () {
+            const gameId = gamesDropdown.value;
+            const variableName = variablesDropdown.value;
+            if (!variableName) {
+                uuidsSection.style.display = "none";
+                return;
+            }
+
+            fetch(`/api/SharedVariable/uuids?gameId=${gameId}&variableName=${variableName}`)
+                .then(response => response.json())
+                .then(uuids => {
+                    uuidsTableBody.innerHTML = ""; // Clear previous rows
+                    uuids.forEach(uuid => {
+                        const row = `<tr>
+                            <td>${uuid.uuid}</td>
+                            <td>${uuid.data}</td>
+                            <td>${new Date(uuid.createdAt).toLocaleString()}</td>
+                            <td>
+                                <form method="post" action="/api/SharedVariable/delete/${uuid.id}" onsubmit="return confirm('Are you sure you want to delete this variable?');">
+                                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                </form>
+                            </td>
+                        </tr>`;
+                        uuidsTableBody.insertAdjacentHTML("beforeend", row);
+                    });
+                    uuidsSection.style.display = "block";
+                });
+        });
+    });
+</script>
