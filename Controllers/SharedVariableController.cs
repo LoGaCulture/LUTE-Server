@@ -175,13 +175,14 @@ namespace LUTE_Server.Controllers
             _logger.LogInformation("Retrieving up to {Count} shared variables for GameId: {GameId}", count, game.Id);
 
             //only select the variables that match the game id and the variable name and return only the variable name variable type data and timestamp
-            var sharedVariables = await _context.SharedVariables
+            var sharedVariables = (await _context.SharedVariables
                 .Where(v => v.GameId == game.Id && v.VariableName == variableName)
-                //randomize the order
-                .OrderBy(v => Guid.NewGuid())
+                .ToListAsync()) // <-- Await here before using OrderBy
+                .OrderBy(v => Guid.NewGuid()) // Now safe to shuffle
                 .Take(count)
                 .Select(v => new { v.VariableName, v.VariableType, v.Data, v.CreatedAt })
-                .ToListAsync();
+                .ToList();
+
 
             return Ok(sharedVariables);
         }
