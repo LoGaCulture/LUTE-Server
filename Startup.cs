@@ -110,6 +110,13 @@ public class Startup
         }
 
         app.UseHttpsRedirection();
+
+
+        app.UseDefaultFiles(new DefaultFilesOptions
+        {
+            DefaultFileNames = new[] { "index.html" } // Specify the default file to serve
+        });
+
         app.UseStaticFiles();
         app.UseRouting();
 
