@@ -91,9 +91,6 @@
 
             }
 
-            //print that we are logging in
-            console.log('Logging in with username:', username);
-
             fetch('/api/auth/login', {
                 method: 'POST',
                 headers: {
@@ -101,29 +98,22 @@
                 },
                 body: JSON.stringify({ username, password })
             })
-            .then(response => response.json())
-            .then(data => {
-                if (data.token) {
-                    //print  in data.token
-                    console.log('Received token:', data.token);
-                    //print fromUnity
-                    console.log('fromUnity:', fromUnity);
-                    if (fromUnity === 'true') {
-                        // If accessed from Unity, redirect with token and close window
-                       
-                        setTimeout(() => { window.close(); }, 500); // Optional: close the window after redirection
-                        window.location.href = 'http://localhost:5000/?token=' + data.token;
-                    } else {
-                        //print
-                        
-                        // If accessed normally, set a cookie and redirect to a dashboard or home page
-                        //document.cookie = `auth_token=${data.token}; path=/; secure; HttpOnly;`;
-                        document.cookie = `auth_token=${data.token}; path=/;`;  // No secure flag for local dev
-
-                        window.location.href = '/admin/dashboard'; // Redirect to a dashboard or homepage after login
-                    }
-                } else {
+            .then(response => {
+                if (!response.ok) {
                     errorText.textContent = 'Login failed. Please check your credentials.';
+                    return null;
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (!data) return;
+                if (fromUnity === 'true') {
+                    // Unity client flow: pass token to local Unity app and close the window
+                    setTimeout(() => { window.close(); }, 500);
+                    window.location.href = 'http://localhost:5000/?token=' + data.token;
+                } else {
+                    // Normal browser flow: cookie is already set by the server (HttpOnly)
+                    window.location.href = '/admin/dashboard';
                 }
             })
             .catch(error => {

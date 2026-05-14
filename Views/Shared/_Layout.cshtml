@@ -22,13 +22,9 @@
             </ul>
             <ul class="navbar-nav ml-auto">
                 <li class="nav-item">
-                    <!-- Log Out Button -->
-                    <button type="button" onclick="logout()" class="btn btn-danger">Log Out</button>
-
-                    <!-- Hidden form to trigger server-side log out (to clear cookies)
-                    <form id="logout-form" method="post" action="@Url.Action("Logout", "Admin")" style="display: none;">
-                        This form is submitted via JavaScript when the user clicks "Log Out" 
-                    </form>-->
+                    <form method="post" action="/api/auth/logout" style="display:inline;">
+                        <button type="submit" class="btn btn-danger">Log Out</button>
+                    </form>
                 </li>
             </ul>
         </div>
@@ -42,14 +38,6 @@
     
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
-
-<script>
-    function logout() {
-        //delete the cookie auth_token
-        document.cookie = "auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-        window.location.href = "/login";
-    }
-</script>
 
 
 </body>

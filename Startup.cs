@@ -298,6 +298,11 @@ public class Startup
             // Serve the login and register pages from wwwroot
             endpoints.MapGet("/login", async context =>
             {
+                if (context.User.Identity?.IsAuthenticated == true)
+                {
+                    context.Response.Redirect("/admin/dashboard");
+                    return;
+                }
                 context.Response.ContentType = "text/html";
                 await context.Response.SendFileAsync("wwwroot/login.html");
             });
