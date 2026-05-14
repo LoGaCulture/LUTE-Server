@@ -214,7 +214,10 @@ public class Startup
             // Serve the login and register pages from wwwroot
             endpoints.MapGet("/login", async context =>
             {
-                if (context.User.Identity?.IsAuthenticated == true)
+                // Only skip the login page if the user is already logged in as Admin.
+                // A freshly-registered User role account should still see the login page
+                // so an admin can log in separately to promote them.
+                if (context.User.Identity?.IsAuthenticated == true && context.User.IsInRole("Admin"))
                 {
                     context.Response.Redirect("/admin/dashboard");
                     return;

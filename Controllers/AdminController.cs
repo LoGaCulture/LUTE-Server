@@ -42,7 +42,7 @@ namespace LUTE_Server.Controllers
             var users = await _userService.GetUsersAsync();
             foreach (var user in users)
             {
-                csv.AppendLine($"{user.Id},{user.Username},{user.Role}");
+                csv.AppendLine(string.Join(",", EscapeCsv(user.Id), EscapeCsv(user.Username), EscapeCsv(user.Role)));
             }
 
             csv.AppendLine();
@@ -53,7 +53,7 @@ namespace LUTE_Server.Controllers
             var games = _context.Games.ToList();
             foreach (var game in games)
             {
-                csv.AppendLine($"{game.Id},{game.Name},{game.Description},{game.CreatedAt},{game.CreatedBy}");
+                csv.AppendLine(string.Join(",", EscapeCsv(game.Id), EscapeCsv(game.Name), EscapeCsv(game.Description), EscapeCsv(game.CreatedAt), EscapeCsv(game.CreatedBy)));
             }
             csv.AppendLine();
 
@@ -63,7 +63,7 @@ namespace LUTE_Server.Controllers
             var sharedVariables = _context.SharedVariables.ToList();
             foreach (var variable in sharedVariables)
             {
-                csv.AppendLine($"{variable.Id},{variable.GameId},{variable.UUID},{variable.VariableName},{variable.Data},{variable.CreatedAt}");
+                csv.AppendLine(string.Join(",", EscapeCsv(variable.Id), EscapeCsv(variable.GameId), EscapeCsv(variable.UUID), EscapeCsv(variable.VariableName), EscapeCsv(variable.Data), EscapeCsv(variable.CreatedAt)));
             }
             csv.AppendLine();
 
@@ -72,7 +72,7 @@ namespace LUTE_Server.Controllers
             var userLogs = _context.UserLogs.ToList();
             foreach (var log in userLogs)
             {
-                csv.AppendLine($"{log.Id},{log.UUID},{log.GameId},{log.LogLevel},{log.Message},{log.Timestamp},{log.AdditionalData}");
+                csv.AppendLine(string.Join(",", EscapeCsv(log.Id), EscapeCsv(log.UUID), EscapeCsv(log.GameId), EscapeCsv(log.LogLevel), EscapeCsv(log.Message), EscapeCsv(log.Timestamp), EscapeCsv(log.AdditionalData)));
             }
             csv.AppendLine();
 
@@ -280,11 +280,30 @@ namespace LUTE_Server.Controllers
 
             foreach (var variable in sharedVariables)
             {
-                csv.AppendLine($"{variable.Id},{variable.GameId},{variable.UUID},{variable.VariableName},{variable.Data},{variable.CreatedAt}");
+                csv.AppendLine(string.Join(",", EscapeCsv(variable.Id), EscapeCsv(variable.GameId), EscapeCsv(variable.UUID), EscapeCsv(variable.VariableName), EscapeCsv(variable.Data), EscapeCsv(variable.CreatedAt)));
             }
 
             var fileName = "SharedVariables.csv";
             return File(Encoding.UTF8.GetBytes(csv.ToString()), "text/csv", fileName);
+        }
+
+        /// <summary>
+        /// Escapes a value for CSV output.
+        /// - Prefixes formula-injection characters (=, +, -, @, tab, CR) with a single quote.
+        /// - Wraps fields containing commas, double-quotes, or newlines in double-quotes,
+        ///   with internal double-quotes doubled per RFC 4180.
+        /// </summary>
+        private static string EscapeCsv(object? value)
+        {
+            if (value is null) return "";
+            var s = value.ToString() ?? "";
+            // Guard against Excel formula injection
+            if (s.Length > 0 && "=+-@\t\r".IndexOf(s[0]) >= 0)
+                s = "'" + s;
+            // Standard CSV quoting when the cell contains delimiter, quote, or newline
+            if (s.Contains(',') || s.Contains('"') || s.Contains('\n') || s.Contains('\r'))
+                s = "\"" + s.Replace("\"", "\"\"") + "\"";
+            return s;
         }
 
         [HttpGet("edit/{gameId}")]

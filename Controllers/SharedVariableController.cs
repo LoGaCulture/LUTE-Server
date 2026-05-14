@@ -108,6 +108,7 @@ namespace LUTE_Server.Controllers
         }
 
         [HttpGet("games")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetGames()
         {
             var games = await _context.Games
@@ -117,6 +118,7 @@ namespace LUTE_Server.Controllers
         }
 
         [HttpGet("variables")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetVariablesForGame([FromQuery] string gameId)
         {
             var variables = await _context.SharedVariables
@@ -128,6 +130,7 @@ namespace LUTE_Server.Controllers
         }
 
         [HttpGet("uuids")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetUuidsForVariable([FromQuery] string gameId, [FromQuery] string variableName)
         {
             var uuids = await _context.SharedVariables

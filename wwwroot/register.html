@@ -68,6 +68,13 @@
             font-size: 14px;
             margin-bottom: 10px;
         }
+
+        .success {
+            color: #90EE90;
+            font-size: 15px;
+            margin-top: 10px;
+            line-height: 1.5;
+        }
     </style>
     <script>
         function register() {
@@ -75,16 +82,16 @@
             const password = document.getElementById('password').value;
             const confirmPassword = document.getElementById('confirmPassword').value;
             const errorText = document.getElementById('errorText');
-    
+
             // Clear any previous errors
             errorText.textContent = '';
-    
+
             // Check if passwords match
             if (password !== confirmPassword) {
                 errorText.textContent = 'Passwords do not match!';
                 return;
             }
-    
+
             // Proceed with registration if passwords match
             fetch('/api/auth/register', {
                 method: 'POST',
@@ -95,8 +102,9 @@
             })
             .then(response => {
                 if (response.ok) {
-                    // Registration successful, redirect to login page
-                    window.location.href = '/login';
+                    // Hide the form and show a holding message — the admin will promote the account
+                    document.getElementById('registerForm').style.display = 'none';
+                    document.getElementById('successMessage').style.display = 'block';
                 } else {
                     return response.json();
                 }
@@ -117,11 +125,17 @@
     <div class="container">
         <img src="logo.svg" alt="LoGa Culture Logo">
         <h1>Register</h1>
-        <div id="errorText" class="error"></div> <!-- Error message placeholder -->
-        <input type="text" id="username" placeholder="Username" required>
-        <input type="password" id="password" placeholder="Password" required>
-        <input type="password" id="confirmPassword" placeholder="Confirm Password" required>
-        <button onclick="register()">Register</button>
+        <div id="registerForm">
+            <div id="errorText" class="error"></div>
+            <input type="text" id="username" placeholder="Username" required>
+            <input type="password" id="password" placeholder="Password" required>
+            <input type="password" id="confirmPassword" placeholder="Confirm Password" required>
+            <button onclick="register()">Register</button>
+        </div>
+        <div id="successMessage" style="display:none;" class="success">
+            <p>✓ Account created successfully!</p>
+            <p>An admin will review your account and update your access. You'll be able to log in once your role has been set.</p>
+        </div>
     </div>
 </body>
 </html>

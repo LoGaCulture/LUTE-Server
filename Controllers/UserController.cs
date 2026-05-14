@@ -1,67 +1,82 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using LUTE_Server.DTOs;
 using LUTE_Server.Models;
 using LUTE_Server.Services;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 
 namespace LUTE_Server.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize(Roles = "Admin")]
     [Microsoft.AspNetCore.Mvc.IgnoreAntiforgeryToken]
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
+        private readonly IPasswordHasher<User> _passwordHasher;
 
-        public UserController(IUserService userService)
+        public UserController(IUserService userService, IPasswordHasher<User> passwordHasher)
         {
             _userService = userService;
+            _passwordHasher = passwordHasher;
         }
 
+        // GET /api/user — returns all users without PasswordHash
         [HttpGet]
-        [Authorize(Roles = "Admin")]
-        public async Task<ActionResult<IEnumerable<User>>> GetUsers()
+        public async Task<ActionResult<IEnumerable<UserDto>>> GetUsers()
         {
             var users = await _userService.GetUsersAsync();
-            return Ok(users);
+            return Ok(users.Select(UserDto.FromUser));
         }
 
+        // GET /api/user/{id} — returns a single user without PasswordHash
         [HttpGet("{id}")]
-        [Authorize(Roles = "Admin,GameDeveloper,User")]
-        public async Task<ActionResult<User>> GetUser(int id)
+        public async Task<ActionResult<UserDto>> GetUser(int id)
         {
             var user = await _userService.GetUserByIdAsync(id);
             if (user == null)
             {
                 return NotFound();
             }
-            return Ok(user);
+            return Ok(UserDto.FromUser(user));
         }
 
+        // POST /api/user — admin creates a user with an explicit role and hashed password
         [HttpPost]
-        [Authorize(Roles = "Admin")]
-        public async Task<ActionResult> AddUser(User user)
+        public async Task<ActionResult<UserDto>> AddUser([FromBody] CreateUserRequest request)
         {
+            var user = new User
+            {
+                Username = request.Username,
+                Role = request.Role
+            };
+            user.PasswordHash = _passwordHasher.HashPassword(user, request.Password);
+
             await _userService.AddUserAsync(user);
-            return CreatedAtAction(nameof(GetUser), new { id = user.Id }, user);
+            return CreatedAtAction(nameof(GetUser), new { id = user.Id }, UserDto.FromUser(user));
         }
 
+        // PUT /api/user/{id} — admin updates only the role (no other fields accepted)
         [HttpPut("{id}")]
-        [Authorize(Roles = "Admin,GameDeveloper")]
-        public async Task<ActionResult> UpdateUser(int id, User user)
+        public async Task<ActionResult> UpdateUser(int id, [FromBody] UpdateUserRequest request)
         {
-            if (id != user.Id)
+            var user = await _userService.GetUserByIdAsync(id);
+            if (user == null)
             {
-                return BadRequest();
+                return NotFound();
             }
 
+            user.Role = request.Role;
             await _userService.UpdateUserAsync(user);
             return NoContent();
         }
 
+        // DELETE /api/user/{id}
         [HttpDelete("{id}")]
-        [Authorize(Roles = "Admin")]
         public async Task<ActionResult> DeleteUser(int id)
         {
             var user = await _userService.GetUserByIdAsync(id);

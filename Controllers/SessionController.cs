@@ -19,6 +19,10 @@ namespace LUTE_Server.Controllers
             _context = context;
         }
 
+        // Disabled — endpoints were never fully wired up (no secret-key or bearer auth gating).
+        // Re-enable with proper authentication when sessions are actually needed.
+#if false
+
         // Start a session or update the last activity if the session is active
         [HttpPost("start")]
         public async Task<ActionResult> StartSession([FromBody] SessionStartRequest request)
@@ -98,6 +102,8 @@ namespace LUTE_Server.Controllers
 
             return Ok(new { message = $"{inactiveSessions.Count} sessions marked as inactive due to inactivity." });
         }
+
+#endif
     }
 
     public class SessionStartRequest

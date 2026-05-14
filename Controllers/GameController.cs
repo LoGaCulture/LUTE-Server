@@ -9,6 +9,9 @@ using System.Linq;
 
 namespace LUTE_Server.Controllers
 {
+    // All endpoints below were disabled during round-2 hardening.
+    // The routes took `int` id but Game.Id is `string`, so they were never wired into the UI.
+    // Uncomment and fix Id types if you need a REST API for games in the future.
     [ApiController]
     [Route("api/[controller]")]
     [Microsoft.AspNetCore.Mvc.IgnoreAntiforgeryToken]
@@ -24,6 +27,8 @@ namespace LUTE_Server.Controllers
             _logger = logger;
             _userService = userService;
         }
+
+#if false
 
         // Get list of games
         [HttpGet]
@@ -172,5 +177,7 @@ namespace LUTE_Server.Controllers
             await _gameService.DeleteGameAsync(id, user.Id);
             return NoContent();
         }
+
+#endif
     }
 }
