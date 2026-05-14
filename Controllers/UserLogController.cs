@@ -14,6 +14,7 @@ namespace LUTE_Server.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Microsoft.AspNetCore.Mvc.IgnoreAntiforgeryToken]
     public class UserLogController : Controller
     {
         private readonly ILoggingService _loggingService;

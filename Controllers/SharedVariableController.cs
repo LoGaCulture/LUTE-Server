@@ -15,6 +15,7 @@ namespace LUTE_Server.Controllers
 
     [ApiController]
     [Route("api/[controller]")]
+    [Microsoft.AspNetCore.Mvc.IgnoreAntiforgeryToken]
     public class SharedVariableController : ControllerBase
     {
         //private readonly ISharedVariableService _service;

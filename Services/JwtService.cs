@@ -36,10 +36,10 @@ namespace LUTE_Server.Services
     var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
     var token = new JwtSecurityToken(
-        _configuration["Jwt:Issuer"],
-        _configuration["Jwt:Issuer"],
+        issuer: _configuration["Jwt:Issuer"],
+        audience: _configuration["Jwt:Issuer"],
         claims,
-        expires: DateTime.Now.AddHours(5),
+        expires: DateTime.UtcNow.AddHours(1),
         signingCredentials: creds);
 
     return new JwtSecurityTokenHandler().WriteToken(token);
@@ -63,9 +63,11 @@ namespace LUTE_Server.Services
                 {
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey = new SymmetricSecurityKey(key),
-                    ValidateIssuer = false,
-                    ValidateAudience = false,
-                    ClockSkew = TimeSpan.Zero
+                    ValidateIssuer = true,
+                    ValidIssuer = _configuration["Jwt:Issuer"],
+                    ValidateAudience = true,
+                    ValidAudience = _configuration["Jwt:Issuer"],
+                    ClockSkew = TimeSpan.FromMinutes(1)
                 }, out SecurityToken validatedToken);
 
                 var jwtToken = (JwtSecurityToken)validatedToken;

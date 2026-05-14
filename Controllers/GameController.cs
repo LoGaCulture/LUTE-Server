@@ -11,6 +11,7 @@ namespace LUTE_Server.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Microsoft.AspNetCore.Mvc.IgnoreAntiforgeryToken]
     public class GameController : ControllerBase
     {
         private readonly IGameService _gameService;

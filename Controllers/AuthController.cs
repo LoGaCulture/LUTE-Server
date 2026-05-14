@@ -9,6 +9,7 @@ namespace LUTE_Server.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Microsoft.AspNetCore.Mvc.IgnoreAntiforgeryToken]
     public class AuthController : ControllerBase
     {
         private readonly IUserService _userService;

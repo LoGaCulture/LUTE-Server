@@ -11,27 +11,31 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using System.Security.Claims;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using LUTE_Server.Models;
 
 
 public class Startup
 {
-    public Startup(IConfiguration configuration)
+    public Startup(IConfiguration configuration, IWebHostEnvironment env)
     {
         Configuration = configuration;
+        Env = env;
     }
 
     public IConfiguration Configuration { get; }
+    public IWebHostEnvironment Env { get; }
 
     public void ConfigureServices(IServiceCollection services)
     {
         services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlite(Configuration.GetConnectionString("DefaultConnection")));
 
-        services.AddControllersWithViews();
+        services.AddControllersWithViews(options =>
+        {
+            // Automatically validate antiforgery tokens on all state-changing MVC actions.
+            // API controllers opt out via [IgnoreAntiforgeryToken] since they receive JSON, not forms.
+            options.Filters.Add(new Microsoft.AspNetCore.Mvc.AutoValidateAntiforgeryTokenAttribute());
+        });
         services.AddRazorPages();
         services.AddSwaggerGen();
 
@@ -60,19 +64,35 @@ public class Startup
         {
             options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
             options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            options.DefaultSignOutScheme = CookieAuthenticationDefaults.AuthenticationScheme;
         }).AddJwtBearer(options =>
+        {
+            options.RequireHttpsMetadata = !Env.IsDevelopment();
+            options.MapInboundClaims = false; // Keep claim names as issued — no auto-remapping
+            options.TokenValidationParameters = new TokenValidationParameters
             {
-                options.RequireHttpsMetadata = false;
-                options.SaveToken = true;
-                options.TokenValidationParameters = new TokenValidationParameters
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(key),
+                ValidateIssuer = true,
+                ValidIssuer = Configuration["Jwt:Issuer"],
+                ValidateAudience = true,
+                ValidAudience = Configuration["Jwt:Issuer"],
+                ValidateLifetime = true,
+                ClockSkew = TimeSpan.FromMinutes(1),
+                RoleClaimType = "role",     // matches claim name used in JwtService
+                NameClaimType = "username"  // matches claim name used in JwtService
+            };
+            options.Events = new JwtBearerEvents
+            {
+                OnMessageReceived = ctx =>
                 {
-                    ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(key),
-                    ValidateIssuer = false,
-                    ValidateAudience = false
-                };
-            });
+                    // Allow the JWT to be read from the auth_token cookie (set by AuthController)
+                    if (string.IsNullOrEmpty(ctx.Token) &&
+                        ctx.Request.Cookies.TryGetValue("auth_token", out var cookieToken))
+                        ctx.Token = cookieToken;
+                    return Task.CompletedTask;
+                }
+            };
+        });
 
         services.AddAuthorization(options =>
         {
@@ -94,7 +114,6 @@ public class Startup
             app.UseHsts();
         }
 
-
         app.UseSwagger();
 
         app.UseSwaggerUI(c =>
@@ -103,7 +122,7 @@ public class Startup
             c.DefaultModelsExpandDepth(-1);
             c.RoutePrefix = "api";
         });
-       
+
         var serviceScopeFactory = app.ApplicationServices.GetService<IServiceScopeFactory>();
         if (serviceScopeFactory == null)
         {
@@ -118,159 +137,56 @@ public class Startup
 
         app.UseHttpsRedirection();
 
-
         app.UseDefaultFiles(new DefaultFilesOptions
         {
-            DefaultFileNames = new[] { "index.html" } // Specify the default file to serve
+            DefaultFileNames = new[] { "index.html" }
         });
 
         app.UseStaticFiles();
         app.UseRouting();
 
-
-         // Create service scope for dependency injection
-    using (var serviceScope = app.ApplicationServices.CreateScope())
-    {
-        var context = serviceScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        context.Database.EnsureCreated(); // Ensure the database is created
-
-        // Check appsettings for DefaultAdmin section
-        var config = serviceScope.ServiceProvider.GetRequiredService<IConfiguration>();
-        var defaultAdminConfig = config.GetSection("DefaultAdmin");
-        var username = defaultAdminConfig["Username"];
-        var password = defaultAdminConfig["Password"];
-        var enabled = bool.Parse(defaultAdminConfig["Enabled"] ?? "false");
-
-        if (enabled)
+        // Seed default admin on first boot if configured
+        using (var serviceScope = app.ApplicationServices.CreateScope())
         {
-            var userService = serviceScope.ServiceProvider.GetRequiredService<IUserService>();
-            var passwordHasher = serviceScope.ServiceProvider.GetRequiredService<IPasswordHasher<User>>();
+            var context = serviceScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            context.Database.EnsureCreated();
 
-            if (string.IsNullOrEmpty(username))
-                throw new ArgumentNullException(nameof(username), "DefaultAdmin:Username cannot be null or empty.");
+            var config = serviceScope.ServiceProvider.GetRequiredService<IConfiguration>();
+            var defaultAdminConfig = config.GetSection("DefaultAdmin");
+            var username = defaultAdminConfig["Username"];
+            var password = defaultAdminConfig["Password"];
+            var enabled = bool.Parse(defaultAdminConfig["Enabled"] ?? "false");
 
-            var knownPasswordPlaceholders = new[] { "__SET_ME__", "admin123", "" };
-            if (string.IsNullOrEmpty(password) || knownPasswordPlaceholders.Contains(password))
-                throw new InvalidOperationException(
-                    "DefaultAdmin:Password is missing or is a placeholder. Set a real password before enabling admin seeding.");
-
-            var existingAdmin = userService.GetUserByUsernameAsync(username).Result;
-            if (existingAdmin == null)
+            if (enabled)
             {
-                logger.LogInformation("Creating default admin user.");
+                var userService = serviceScope.ServiceProvider.GetRequiredService<IUserService>();
+                var passwordHasher = serviceScope.ServiceProvider.GetRequiredService<IPasswordHasher<User>>();
 
-                var adminUser = new User
+                if (string.IsNullOrEmpty(username))
+                    throw new ArgumentNullException(nameof(username), "DefaultAdmin:Username cannot be null or empty.");
+
+                var knownPasswordPlaceholders = new[] { "__SET_ME__", "admin123", "" };
+                if (string.IsNullOrEmpty(password) || knownPasswordPlaceholders.Contains(password))
+                    throw new InvalidOperationException(
+                        "DefaultAdmin:Password is missing or is a placeholder. Set a real password before enabling admin seeding.");
+
+                var existingAdmin = userService.GetUserByUsernameAsync(username).Result;
+                if (existingAdmin == null)
                 {
-                    Username = username,
-                    Role = UserRole.Admin
-                };
-                adminUser.PasswordHash = passwordHasher.HashPassword(adminUser, password);
-                userService.AddUserAsync(adminUser).Wait();
+                    logger.LogInformation("Creating default admin user.");
 
-                logger.LogInformation("Default admin user created with username: {Username}", username);
+                    var adminUser = new User
+                    {
+                        Username = username,
+                        Role = UserRole.Admin
+                    };
+                    adminUser.PasswordHash = passwordHasher.HashPassword(adminUser, password);
+                    userService.AddUserAsync(adminUser).Wait();
+
+                    logger.LogInformation("Default admin user created with username: {Username}", username);
+                }
             }
         }
-    }
-
-
-        app.Use(async (context, next) =>
-        {
-            var token = context.Request.Cookies["auth_token"];
-            var secretKey = context.Request.Headers["X-Secret-Key"].ToString();
-
-
-
-
-
-            // Use a service scope to get the ApplicationDbContext
-            using (var scope = app.ApplicationServices.CreateScope())
-            {
-                var _context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-
-                if (context.Request.Path.StartsWithSegments("/api/userlog") && !string.IsNullOrEmpty(secretKey))
-                {
-                    logger.LogInformation("Secret key provided. Skipping JWT validation for Unity logging.");
-
-                    // Validate secret key against stored game secret (optional validation step).
-                    var game = _context.Games.FirstOrDefault(g => g.SecretKey == secretKey);
-                    if (game == null)
-                    {
-                        logger.LogWarning("Invalid secret key provided.");
-                        context.Response.StatusCode = 401; // Unauthorized
-                        await context.Response.WriteAsync("Invalid secret key.");
-                        return;
-                    }
-
-                    // Set an internal flag for Unity request (optional).
-                    context.Items["IsUnityRequest"] = true;
-                }
-                else if (!string.IsNullOrEmpty(token))
-                {
-                    // Proceed with JWT validation as normal.
-                    logger.LogInformation("Validating JWT token...");
-
-                    var tokenHandler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
-                    var jwtKey = Configuration["Jwt:Key"] ?? throw new ArgumentNullException("Jwt:Key");
-                    var key = Encoding.UTF8.GetBytes(jwtKey);
-
-                    try
-                    {
-                        tokenHandler.ValidateToken(token, new TokenValidationParameters
-                        {
-                            ValidateIssuerSigningKey = true,
-                            IssuerSigningKey = new SymmetricSecurityKey(key),
-                            ValidateIssuer = false,
-                            ValidateAudience = false,
-                            ClockSkew = TimeSpan.Zero
-                        }, out var validatedToken);
-
-                        logger.LogInformation($"Validated Token: {validatedToken}");
-
-                        var jwtToken = (System.IdentityModel.Tokens.Jwt.JwtSecurityToken)validatedToken;
-
-                        var username = jwtToken.Claims.FirstOrDefault(x => x.Type == "username")?.Value;
-                        var userId = jwtToken.Claims.FirstOrDefault(x => x.Type == "userId")?.Value;
-                        var role = jwtToken.Claims.FirstOrDefault(x => x.Type == "role")?.Value;
-
-                        if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(role))
-                        {
-                            throw new ArgumentNullException("Username or role claims are missing from the token.");
-                        }
-
-                        var claims = new List<Claim>
-                        {
-                        new Claim(ClaimTypes.Name, username),
-                        new Claim(ClaimTypes.NameIdentifier, userId ?? throw new ArgumentNullException("userId")),
-                        new Claim(ClaimTypes.Role, role)
-                        };
-
-                        var identity = new ClaimsIdentity(claims, "jwt");
-                        context.User = new ClaimsPrincipal(identity);
-
-                        if (context.User.Identity != null)
-                        {
-                            logger.LogInformation($"User: {context.User.Identity.Name}");
-                        }
-                        else
-                        {
-                            logger.LogWarning("User identity is null.");
-                        }
-                        logger.LogInformation($"Roles: {string.Join(", ", context.User.Claims.Where(c => c.Type == ClaimTypes.Role).Select(c => c.Value))}");
-                    }
-                    catch (Exception e)
-                    {
-                        logger.LogWarning("Token validation failed.");
-                        logger.LogError(e, "Token validation error");
-                    }
-                }
-                else
-                {
-                    logger.LogInformation("No token or secret key found.");
-                }
-            }
-
-            await next();
-        });
 
         app.UseAuthentication();
         app.UseAuthorization();
