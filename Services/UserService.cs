@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using LUTE_Server.DTOs;
 using LUTE_Server.Models;
 using LUTE_Server.Repositories;
+using Microsoft.AspNetCore.Identity;
 
 namespace LUTE_Server.Services
 {
@@ -10,11 +11,13 @@ namespace LUTE_Server.Services
     {
         private readonly IUserRepository _userRepository;
         private readonly JwtService _jwtService;
+        private readonly IPasswordHasher<User> _passwordHasher;
 
-        public UserService(IUserRepository userRepository, JwtService jwtService)
+        public UserService(IUserRepository userRepository, JwtService jwtService, IPasswordHasher<User> passwordHasher)
         {
             _userRepository = userRepository;
             _jwtService = jwtService;
+            _passwordHasher = passwordHasher;
         }
 
         public async Task<IEnumerable<User>> GetUsersAsync()
@@ -62,7 +65,7 @@ namespace LUTE_Server.Services
                 Username = request.Username,
                 Role = role
             };
-            user.SetPassword(request.Password);
+            user.PasswordHash = _passwordHasher.HashPassword(user, request.Password);
 
             await _userRepository.AddUserAsync(user);
 
@@ -74,9 +77,22 @@ namespace LUTE_Server.Services
         {
 
             var user = await _userRepository.GetUserByUsernameAsync(request.Username);
-            if (user == null || !user.CheckPassword(request.Password))
+            if (user == null)
             {
                 return new AuthResult { Success = false, ErrorMessage = "Invalid username or password" };
+            }
+
+            var verification = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, request.Password);
+            if (verification == PasswordVerificationResult.Failed)
+            {
+                return new AuthResult { Success = false, ErrorMessage = "Invalid username or password" };
+            }
+
+            // PasswordHasher signals it should be rehashed (e.g. iteration count upgraded)
+            if (verification == PasswordVerificationResult.SuccessRehashNeeded)
+            {
+                user.PasswordHash = _passwordHasher.HashPassword(user, request.Password);
+                await _userRepository.UpdateUserAsync(user);
             }
 
             var token = _jwtService.GenerateJwtToken(user);

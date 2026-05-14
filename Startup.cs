@@ -4,6 +4,7 @@ using LUTE_Server.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -34,6 +35,7 @@ public class Startup
         services.AddRazorPages();
         services.AddSwaggerGen();
 
+        services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IUserService, UserService>();
         services.AddSingleton<JwtService>();
@@ -142,28 +144,27 @@ public class Startup
         if (enabled)
         {
             var userService = serviceScope.ServiceProvider.GetRequiredService<IUserService>();
+            var passwordHasher = serviceScope.ServiceProvider.GetRequiredService<IPasswordHasher<User>>();
 
-            // Check if admin already exists
             if (string.IsNullOrEmpty(username))
-            {
-                throw new ArgumentNullException(nameof(username), "Username cannot be null or empty.");
-            }
+                throw new ArgumentNullException(nameof(username), "DefaultAdmin:Username cannot be null or empty.");
+
+            var knownPasswordPlaceholders = new[] { "__SET_ME__", "admin123", "" };
+            if (string.IsNullOrEmpty(password) || knownPasswordPlaceholders.Contains(password))
+                throw new InvalidOperationException(
+                    "DefaultAdmin:Password is missing or is a placeholder. Set a real password before enabling admin seeding.");
+
             var existingAdmin = userService.GetUserByUsernameAsync(username).Result;
             if (existingAdmin == null)
             {
-                // If admin doesn't exist, create the admin user
                 logger.LogInformation("Creating default admin user.");
 
                 var adminUser = new User
                 {
                     Username = username,
-                    Role = UserRole.Admin // Assuming Admin is an enum value 1
+                    Role = UserRole.Admin
                 };
-                if (string.IsNullOrEmpty(password))
-                {
-                    throw new ArgumentNullException(nameof(password), "Password cannot be null or empty.");
-                }
-                adminUser.SetPassword(password);
+                adminUser.PasswordHash = passwordHasher.HashPassword(adminUser, password);
                 userService.AddUserAsync(adminUser).Wait();
 
                 logger.LogInformation("Default admin user created with username: {Username}", username);
