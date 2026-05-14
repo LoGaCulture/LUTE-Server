@@ -3,8 +3,8 @@
     "DefaultConnection": "Data Source=YourDBName.db"
   },
   "Jwt": {
-    "Key": "SecretDevKeyVeryLongHasToBeForSecurity",
-    "Issuer": "Your Issuer"
+    "Key": "__SET_ME__", // Replace with a random string of at least 32 characters
+    "Issuer": "Your Issuer" // Replace with your organisation name or domain
   },
   "Logging": {
     "LogLevel": {
@@ -15,10 +15,11 @@
   },
   "AllowedHosts": "*",
 
-    // Uncomment and edit the fields below to create a default admin user
+  // Set Enabled to true and fill in Username/Password to seed an admin account on first boot.
+  // The admin will be forced to change their password on first login.
   "DefaultAdmin": {
     "Username": "admin", // Change this username
-    "Password": "admin123", // Change this password
-    "Enabled": true // Set this to true to enable admin creation
+    "Password": "__SET_ME__", // Replace with a strong password
+    "Enabled": false // Set to true only when seeding a new instance
   }
 }

@@ -46,7 +46,12 @@ public class Startup
         //services.AddScoped<IGameSharedVariableRepository, GameSharedVariableRepository>();
         services.AddScoped<IUserService, UserService>();
 
-        var jwtKey = Configuration["Jwt:Key"] ?? Environment.GetEnvironmentVariable("JWT_KEY") ?? throw new ArgumentNullException("JWT key is not configured.");
+        var jwtKey = Environment.GetEnvironmentVariable("JWT_KEY") ?? Configuration["Jwt:Key"];
+        var knownPlaceholders = new[] { "__SET_ME__", "SecretDevKeyVeryLongHasToBeForSecurity", "" };
+        if (string.IsNullOrWhiteSpace(jwtKey) || knownPlaceholders.Contains(jwtKey) || Encoding.UTF8.GetByteCount(jwtKey) < 32)
+            throw new InvalidOperationException(
+                "Jwt:Key is not configured, is a placeholder, or is too short (minimum 32 bytes). " +
+                "Set a strong secret via the JWT_KEY environment variable or Jwt:Key in appsettings.json.");
         var key = Encoding.UTF8.GetBytes(jwtKey);
 
         services.AddAuthentication(options =>
