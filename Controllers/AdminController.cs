@@ -36,8 +36,6 @@ namespace LUTE_Server.Controllers
         {
             var csv = new StringBuilder();
 
-
-            Console.WriteLine("DownloadAllData called");
             // Download Users
             csv.AppendLine("Users");
             csv.AppendLine("Id,Username,Role");
@@ -47,7 +45,6 @@ namespace LUTE_Server.Controllers
                 csv.AppendLine($"{user.Id},{user.Username},{user.Role}");
             }
 
-            Console.WriteLine("Users downloaded");
             csv.AppendLine();
 
             // Download Games
@@ -90,8 +87,6 @@ namespace LUTE_Server.Controllers
         public async Task<IActionResult> Index(int pageNumber = 1, int pageSize = 10)
         {
 
-            Console.WriteLine("Admin Index called with pageNumber: " + pageNumber + " and pageSize: " + pageSize);
-
             var users = await _userService.GetUsersAsync();
 
             if (users == null)
@@ -99,10 +94,6 @@ namespace LUTE_Server.Controllers
                 _logger.LogError("UserService returned null. Unable to retrieve user data.");
                 return View("Error", "User data could not be retrieved.");
             }
-
-            Console.WriteLine("Users retrieved from UserService: " + users.Count());
-
-
 
 
             var pagedUsers = users.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
@@ -176,8 +167,6 @@ namespace LUTE_Server.Controllers
                 SecretKey = GenerateSecureToken()  // Generate secure token during game creation
             };
 
-            // Log the new game
-            Console.WriteLine("New Game Created: " + newGame.Id);
 
             _context.Games.Add(newGame);
             _context.SaveChanges();
@@ -221,8 +210,6 @@ namespace LUTE_Server.Controllers
         [HttpGet("download-secrets/{gameId}")]
         public IActionResult DownloadSecrets(Guid gameId)
         {
-            // Log incoming gameId for debug
-            Console.WriteLine($"DownloadSecrets called with gameId: {gameId}");
 
             var game = _context.Games.FirstOrDefault(g => g.Id == gameId.ToString());
             if (game == null)

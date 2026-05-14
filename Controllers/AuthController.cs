@@ -40,9 +40,6 @@ namespace LUTE_Server.Controllers
                 return BadRequest(ModelState);
             }
 
-            //print the request for debugging
-            Console.WriteLine($"Login request: {request.Username}, {request.Password}");
-
             var result = await _userService.LoginUserAsync(request);
             if (!result.Success)
             {
