@@ -1,38 +1,55 @@
 @model IEnumerable<LUTE_Server.Models.Session>
 
 @{
-    Layout = "~/Views/Shared/_Layout.cshtml";
     ViewData["Title"] = "Sessions";
 }
 
-<h2>Active Sessions</h2>
+<div class="page-header">
+    <h1>Sessions</h1>
+</div>
 
-<table class="table">
-    <thead>
-        <tr>
-            <th>Session ID</th>
-            <th>UUID</th>
-            <th>Game ID</th>
-            <th>Start Time</th>
-            <th>Last Activity</th>
-            <th>Status</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var session in Model)
-        {
+<div class="alert alert-info">
+    This view is read-only — session tracking endpoints are currently disabled.
+    Session data shown here is historical.
+</div>
+
+<div class="table-wrap">
+    <table>
+        <thead>
             <tr>
-                <td>@session.Id</td>
-                <td>@session.UUID</td>
-                <td>@session.GameId</td>
-                <td>@session.StartTime</td>
-                <td>@session.LastActivity</td>
-                <td>@(session.IsActive ? "Active" : "Inactive")</td>
+                <th>ID</th>
+                <th>UUID</th>
+                <th>Game ID</th>
+                <th>Start Time</th>
+                <th>Last Activity</th>
+                <th>Status</th>
             </tr>
-        }
-    </tbody>
-</table>
-
-<form method="post" action="@Url.Action("TimeoutInactiveSessions", "Session")">
-    <button type="submit" class="btn btn-warning">Check and Timeout Inactive Sessions</button>
-</form>
+        </thead>
+        <tbody>
+            @if (!Model.Any())
+            {
+                <tr><td colspan="6"><div class="empty-state">No session data recorded.</div></td></tr>
+            }
+            @foreach (var session in Model)
+            {
+                <tr>
+                    <td class="muted">@session.Id</td>
+                    <td class="mono">@session.UUID</td>
+                    <td class="mono">@session.GameId</td>
+                    <td class="muted">@session.StartTime.ToString("yyyy-MM-dd HH:mm")</td>
+                    <td class="muted">@session.LastActivity.ToString("yyyy-MM-dd HH:mm")</td>
+                    <td>
+                        @if (session.IsActive)
+                        {
+                            <span class="badge log-info">Active</span>
+                        }
+                        else
+                        {
+                            <span class="badge role-user">Inactive</span>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

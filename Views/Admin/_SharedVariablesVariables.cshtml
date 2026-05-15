@@ -1,0 +1,25 @@
+@model IEnumerable<string>
+@{
+    var gameId = ViewData["GameId"]?.ToString() ?? "";
+}
+@if (!Model.Any())
+{
+    <div class="empty-state">No variables for this game.</div>
+}
+else
+{
+    <div class="pane-header">Variables</div>
+    <ul class="pane-list">
+        @foreach (var variable in Model)
+        {
+            <li>
+                <button hx-get="@Url.Action("SharedVariablesDataPartial", "Admin", new { gameId = gameId, variableName = variable })"
+                        hx-target="#data-pane"
+                        hx-swap="innerHTML"
+                        onclick="document.querySelectorAll('#variables-pane .pane-list li').forEach(function(e){e.classList.remove('active');}); this.closest('li').classList.add('active');">
+                    @variable
+                </button>
+            </li>
+        }
+    </ul>
+}

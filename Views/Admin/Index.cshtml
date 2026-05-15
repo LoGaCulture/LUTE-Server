@@ -1,78 +1,97 @@
 @model LUTE_Server.ViewModels.PagedUserViewModel
 
-
 @{
-    Layout = "~/Views/Shared/_Layout.cshtml";
     ViewData["Title"] = "Users";
 }
 
+<div class="page-header">
+    <h1>Users</h1>
+</div>
 
-<h2>Users</h2>
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+}
 
-<table class="table">
-    <thead>
-        <tr>
-            <th>ID</th>
-            <th>Username</th>
-            <th>Role</th>
-            <th>Action</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var user in Model.Users)
-        {
+<div class="table-wrap">
+    <table>
+        <thead>
             <tr>
-                <td>@user.Id</td>
-                <td>@user.Username</td>
-                <td>
-                    <form method="post" action="/Admin/UpdateUserRole">
-                        @Html.AntiForgeryToken()
-
-                        <select name="newRole" class="form-control">
-                            <option value="0" @(user.Role == LUTE_Server.Models.UserRole.Admin ? "selected" : "")>Admin</option>
-                            <option value="1" @(user.Role == LUTE_Server.Models.UserRole.GameDeveloper ? "selected" : "")>Developer</option>
-                            <option value="2" @(user.Role == LUTE_Server.Models.UserRole.User ? "selected" : "")>User</option>
-                        </select>
-                        
-                        <!-- Hidden input to ensure the correct user is updated -->
-                        <input type="hidden" name="userId" value="@user.Id" />
-                        
-                        <button type="submit" class="btn btn-primary">Update Role</button>
-                    </form>
-                </td>
+                <th>ID</th>
+                <th>Username</th>
+                <th>Role</th>
+                <th>Update Role</th>
             </tr>
-        }
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            @foreach (var user in Model.Users)
+            {
+                <tr>
+                    <td class="muted">@user.Id</td>
+                    <td>@user.Username</td>
+                    <td>
+                        @{
+                            var roleClass = user.Role switch {
+                                UserRole.Admin         => "role-admin",
+                                UserRole.GameDeveloper => "role-gamedeveloper",
+                                _                      => "role-user"
+                            };
+                        }
+                        <span class="badge @roleClass">@user.Role</span>
+                    </td>
+                    <td>
+                        <form asp-action="UpdateUserRole" method="post" class="inline-form">
+                            <input type="hidden" name="userId" value="@user.Id" />
+                            <select name="newRole">
+                                @foreach (UserRole roleOption in Enum.GetValues(typeof(UserRole)))
+                                {
+                                    if (user.Role == roleOption)
+                                    {
+                                        <option value="@((int)roleOption)" selected>@roleOption</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@((int)roleOption)">@roleOption</option>
+                                    }
+                                }
+                            </select>
+                            <button type="submit" class="btn btn-secondary btn-sm">Save</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
 
-
-<div>
-    <ul class="pagination">
+@if (Model.TotalPages > 1)
+{
+    <div class="pagination-compact">
         @if (Model.CurrentPage > 1)
         {
-            <li class="page-item">
-                <a class="page-link" href="@Url.Action("Index", new { pageNumber = Model.CurrentPage - 1 })">Previous</a>
-            </li>
+            <a href="@Url.Action("Index", new { pageNumber = Model.CurrentPage - 1 })">‹ Prev</a>
+            <span class="sep">·</span>
         }
-
-        @for (int i = 1; i <= Model.TotalPages; i++)
+        else
         {
-            <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
-                <a class="page-link" href="@Url.Action("Index", new { pageNumber = i })">@i</a>
-            </li>
+            <span class="disabled">‹ Prev</span>
+            <span class="sep">·</span>
         }
-
+        <span class="page-info">Page @Model.CurrentPage of @Model.TotalPages</span>
+        <span class="sep">·</span>
         @if (Model.CurrentPage < Model.TotalPages)
         {
-            <li class="page-item">
-                <a class="page-link" href="@Url.Action("Index", new { pageNumber = Model.CurrentPage + 1 })">Next</a>
-            </li>
+            <a href="@Url.Action("Index", new { pageNumber = Model.CurrentPage + 1 })">Next ›</a>
         }
-    </ul>
-</div>
-
-<div>
-    <form method="get" action="/Admin/DownloadAllData">
-        <button type="submit" class="btn btn-primary">Download All</button>
-    </form>
-</div>
+        else
+        {
+            <span class="disabled">Next ›</span>
+        }
+        <span class="jump-wrap">
+            Go to
+            <input type="number" class="jump-input" min="1" max="@Model.TotalPages"
+                   onchange="if(this.value>=1&&this.value<=@Model.TotalPages)window.location='@Url.Action("Index")?pageNumber='+this.value"
+                   placeholder="…" />
+        </span>
+    </div>
+}

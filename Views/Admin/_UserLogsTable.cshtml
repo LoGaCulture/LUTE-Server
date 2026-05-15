@@ -1,0 +1,165 @@
+@model LUTE_Server.ViewModels.PagedUserLogViewModel
+@{
+    // Pre-compute sort directions for column headers
+    var curSortBy  = Model.SortBy  ?? "timestamp";
+    var curSortDir = Model.SortDir ?? "desc";
+
+    // Clicking an active column toggles direction; clicking an inactive column picks its natural default
+    var tsSortDir    = (curSortBy == "timestamp" && curSortDir == "asc") ? "desc" : "asc";
+    var levelSortDir = (curSortBy == "level"     && curSortDir == "asc") ? "desc" : "asc";
+
+    string SortInd(string col) => curSortBy == col
+        ? (curSortDir == "asc" ? " ▲" : " ▼")
+        : "";
+}
+
+@if (Model.Logs == null || !Model.Logs.Any())
+{
+    <div class="empty-state" style="min-height: 240px;">No logs match the current filters.</div>
+}
+else
+{
+    <div class="table-wrap">
+        <table>
+            <thead class="sticky-header">
+                <tr>
+                    <th>ID</th>
+                    <th>UUID</th>
+                    <th>Game</th>
+                    <th>
+                        <span class="sort-header @(curSortBy == "level" ? "sort-active" : "")"
+                              hx-get="@Url.Action("UserLogs", "Admin")"
+                              hx-include="#log-filters"
+                              hx-vals='{"sortBy":"level","sortDir":"@levelSortDir"}'
+                              hx-target="#logs-table-container"
+                              hx-swap="innerHTML"
+                              hx-push-url="true">
+                            Level<span class="sort-indicator">@SortInd("level")</span>
+                        </span>
+                    </th>
+                    <th>Message</th>
+                    <th>
+                        <span class="sort-header @(curSortBy == "timestamp" ? "sort-active" : "")"
+                              hx-get="@Url.Action("UserLogs", "Admin")"
+                              hx-include="#log-filters"
+                              hx-vals='{"sortBy":"timestamp","sortDir":"@tsSortDir"}'
+                              hx-target="#logs-table-container"
+                              hx-swap="innerHTML"
+                              hx-push-url="true">
+                            Timestamp<span class="sort-indicator">@SortInd("timestamp")</span>
+                        </span>
+                    </th>
+                    <th>Additional Data</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var entry in Model.Logs)
+                {
+                    if (entry.Log != null)
+                    {
+                        var lvl = (entry.Log.LogLevel ?? "").ToUpperInvariant();
+                        var badgeClass = lvl switch {
+                            "WARNING" => "log-warning",
+                            "WARN"    => "log-warning",
+                            "ERROR"   => "log-error",
+                            "DEBUG"   => "log-debug",
+                            _         => "log-info"
+                        };
+                        var uuid = entry.Log.UUID ?? "";
+                        <tr>
+                            <td class="muted">@entry.Log.Id</td>
+                            <td class="mono uuid-cell">
+                                <a href="@Url.Action("UserLogs", "Admin", new { uuid = entry.Log.UUID })" title="@uuid">@uuid</a>
+                            </td>
+                            <td>
+                                <a href="@Url.Action("UserLogs", "Admin", new { gameId = entry.Log.GameId })">@entry.GameName</a>
+                            </td>
+                            <td><span class="badge @badgeClass">@entry.Log.LogLevel</span></td>
+                            <td>
+                                <details class="cell-expand">
+                                    <summary>@entry.Log.Message</summary>
+                                    <div class="cell-full">@entry.Log.Message</div>
+                                </details>
+                            </td>
+                            <td class="muted">@entry.Log.Timestamp.ToString("yyyy-MM-dd HH:mm")</td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(entry.Log.AdditionalData))
+                                {
+                                    <details class="cell-expand">
+                                        <summary>@entry.Log.AdditionalData</summary>
+                                        <div class="cell-full">@entry.Log.AdditionalData</div>
+                                    </details>
+                                }
+                            </td>
+                            <td>
+                                <form method="post" action="@Url.Action("DeleteLog", "UserLog", new { logId = entry.Log.Id })"
+                                      onsubmit="return confirm('Delete this log entry?');">
+                                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    @if (Model.TotalPages > 1)
+    {
+        <div class="pagination-compact">
+            @if (Model.CurrentPage > 1)
+            {
+                <a href="javascript:;"
+                   hx-get="@Url.Action("UserLogs", "Admin")"
+                   hx-include="#log-filters"
+                   hx-vals='{"pageNumber":"@(Model.CurrentPage - 1)","sortBy":"@curSortBy","sortDir":"@curSortDir"}'
+                   hx-target="#logs-table-container"
+                   hx-swap="innerHTML"
+                   hx-push-url="true">‹ Prev</a>
+                <span class="sep">·</span>
+            }
+            else
+            {
+                <span style="color:var(--text-muted)">‹ Prev</span>
+                <span class="sep">·</span>
+            }
+            <span class="page-info">Page @Model.CurrentPage of @Model.TotalPages</span>
+            <span class="sep">·</span>
+            @if (Model.CurrentPage < Model.TotalPages)
+            {
+                <a href="javascript:;"
+                   hx-get="@Url.Action("UserLogs", "Admin")"
+                   hx-include="#log-filters"
+                   hx-vals='{"pageNumber":"@(Model.CurrentPage + 1)","sortBy":"@curSortBy","sortDir":"@curSortDir"}'
+                   hx-target="#logs-table-container"
+                   hx-swap="innerHTML"
+                   hx-push-url="true">Next ›</a>
+            }
+            else
+            {
+                <span style="color:var(--text-muted)">Next ›</span>
+            }
+            <span class="jump-wrap">
+                Go to
+                <input type="number" class="jump-input" min="1" max="@Model.TotalPages" placeholder="…"
+                       id="page-jump" name="pageNumber"
+                       hx-get="@Url.Action("UserLogs", "Admin")"
+                       hx-include="#log-filters"
+                       hx-vals='{"sortBy":"@curSortBy","sortDir":"@curSortDir"}'
+                       hx-target="#logs-table-container"
+                       hx-swap="innerHTML"
+                       hx-push-url="true"
+                       hx-trigger="keyup[key=='Enter'], change" />
+            </span>
+        </div>
+    }
+
+    <div class="actions-row" style="margin-top: 10px;">
+        <a href="@Url.Action("DownloadLogs", "UserLog", new { uuid = Model.UUIDFilter, gameId = Model.GameIdFilter })"
+           class="btn btn-secondary btn-sm">Download CSV</a>
+        <span class="label-caps" style="margin-left: 4px;">
+            @Model.TotalPages * 20 — showing page @Model.CurrentPage
+        </span>
+    </div>
+}

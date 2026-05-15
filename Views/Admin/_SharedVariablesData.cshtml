@@ -1,0 +1,46 @@
+@model IEnumerable<SharedVariable>
+@{
+    var variableName = ViewData["VariableName"]?.ToString() ?? "";
+}
+<div class="pane-header">@variableName</div>
+@if (!Model.Any())
+{
+    <div class="empty-state">No data for this variable.</div>
+}
+else
+{
+    <div style="flex: 1; overflow: auto;">
+        <table>
+            <thead>
+                <tr>
+                    <th>UUID</th>
+                    <th>Data</th>
+                    <th>Created At</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td class="mono">@item.UUID</td>
+                        <td>
+                            <details class="cell-expand">
+                                <summary>@item.Data</summary>
+                                <div class="cell-full">@item.Data</div>
+                            </details>
+                        </td>
+                        <td class="muted">@item.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                        <td>
+                            <button class="btn btn-danger btn-sm"
+                                    hx-post="/api/SharedVariable/delete/@item.Id"
+                                    hx-target="closest tr"
+                                    hx-swap="delete"
+                                    hx-confirm="Delete this entry?">Delete</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

@@ -1,74 +1,99 @@
+@model LUTE_Server.ViewModels.DashboardViewModel
+
 @{
-    Layout = "~/Views/Shared/_Layout.cshtml";
     ViewData["Title"] = "Dashboard";
 }
 
-<div class="container">
-    <h2>Admin Dashboard</h2>
+<div class="page-header">
+    <h1>Dashboard</h1>
+</div>
 
-    <div class="row">
-        <div class="col-md-4">
-            <div class="card mb-4 shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title">Manage Users</h5>
-                    <p class="card-text">View and manage registered users in the system.</p>
-                    <a href="@Url.Action("Index", "Admin")" class="btn btn-primary">Go to Users</a>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-4">
-            <div class="card mb-4 shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title">Manage Games</h5>
-                    <p class="card-text">View and manage games created by developers.</p>
-                    <a href="@Url.Action("Games", "Admin")" class="btn btn-primary">Go to Games</a>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-4">
-            <div class="card mb-4 shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title">Manage Shared Variables</h5>
-                    <p class="card-text">View and manage shared variables for games.</p>
-                    <a href="@Url.Action("SharedVariables", "Admin")" class="btn btn-primary">Go to Shared Variables</a>
-                </div>
-            </div>
-        </div>
+<!-- Stat tiles -->
+<div class="stat-tiles">
+    <div class="stat-tile">
+        <div class="stat-number">@Model.TotalUsers</div>
+        <div class="stat-label">Total Users</div>
     </div>
-
-    <div class="row">
-        <div class="col-md-4">
-            <div class="card mb-4 shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title">View Logs</h5>
-                    <p class="card-text">View logs for user activities and errors.</p>
-                    <a href="@Url.Action("UserLogs", "Admin")" class="btn btn-primary">Go to Logs</a>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-4">
-            <div class="card mb-4 shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title">Manage Sessions</h5>
-                    <p class="card-text">View and manage active game sessions.</p>
-                    <a href="@Url.Action("Sessions", "Admin")" class="btn btn-primary">Go to Sessions</a>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-4">
-            <div class="card mb-4 shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title">Download Data</h5>
-                    <p class="card-text">Download all system data in CSV format.</p>
-                    <form method="get" action="@Url.Action("DownloadAllData", "Admin")">
-                        <button type="submit" class="btn btn-primary">Download All Data</button>
-                    </form>
-                </div>
-            </div>
-        </div>
+    <div class="stat-tile">
+        <div class="stat-number">@Model.TotalGames</div>
+        <div class="stat-label">Games</div>
+    </div>
+    <div class="stat-tile">
+        <div class="stat-number">@Model.TotalLogs</div>
+        <div class="stat-label">Total Logs</div>
+    </div>
+    <div class="stat-tile">
+        <div class="stat-number">@Model.LogsLast7Days</div>
+        <div class="stat-label">Logs (7 days)</div>
     </div>
 </div>
+
+<!-- Quick actions -->
+<div class="actions-row" style="margin-bottom: 28px;">
+    <a href="@Url.Action("Games", "Admin")" class="btn btn-primary">+ New Game</a>
+    <a href="@Url.Action("UserLogs", "Admin")" class="btn btn-secondary">View Logs</a>
+    <a href="@Url.Action("SharedVariables", "Admin")" class="btn btn-secondary">Shared Variables</a>
+</div>
+
+<!-- Downloads -->
+<div class="downloads-form">
+    <h3>Download Data</h3>
+    <form asp-action="Download" method="post">
+        <div class="form-row">
+            <div class="form-col">
+                <label>Game</label>
+                <select name="gameId">
+                    <option value="">All games</option>
+                    @foreach (var game in Model.Games)
+                    {
+                        <option value="@game.Id">@game.Name</option>
+                    }
+                </select>
+            </div>
+            <div class="form-col">
+                <label>Date range</label>
+                <select name="datePreset" id="datePreset" onchange="toggleCustomDates(this.value)">
+                    <option value="all">All time</option>
+                    <option value="today">Today</option>
+                    <option value="7days">Last 7 days</option>
+                    <option value="30days">Last 30 days</option>
+                    <option value="custom">Custom…</option>
+                </select>
+                <div class="date-custom" id="custom-date-row">
+                    <input type="date" name="fromDate" style="width: auto; flex: 1;" />
+                    <span style="color: var(--text-muted); align-self: center; padding: 0 4px;">–</span>
+                    <input type="date" name="toDate" style="width: auto; flex: 1;" />
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <label>Data type</label>
+            <div class="type-group">
+                <label class="type-option">
+                    <input type="radio" name="type" value="logs" checked />
+                    Logs
+                </label>
+                <label class="type-option">
+                    <input type="radio" name="type" value="variables" />
+                    Shared Variables
+                </label>
+                <label class="type-option">
+                    <input type="radio" name="type" value="all" />
+                    All Data
+                </label>
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary">Download CSV</button>
+    </form>
+</div>
+
+<script>
+function toggleCustomDates(val) {
+    var row = document.getElementById('custom-date-row');
+    if (val === 'custom') {
+        row.classList.add('visible');
+    } else {
+        row.classList.remove('visible');
+    }
+}
+</script>

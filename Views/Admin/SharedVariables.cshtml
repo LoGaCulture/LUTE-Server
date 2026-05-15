@@ -1,121 +1,46 @@
+@model IEnumerable<LUTE_Server.Models.Game>
+
 @{
-    Layout = "~/Views/Shared/_Layout.cshtml";
     ViewData["Title"] = "Shared Variables";
 }
 
-<div class="container">
-    <h2>Shared Variables Browser</h2>
-
-    <!-- Dropdown for Games -->
-    <div class="mb-4">
-        <label for="gamesDropdown">Select a Game:</label>
-        <select id="gamesDropdown" class="form-select">
-            <option value="">-- Select a Game --</option>
-            <!-- Options populated dynamically -->
-        </select>
-    </div>
-
-    <!-- Dropdown for Variables -->
-    <div class="mb-4" id="variablesSection" style="display: none;">
-        <label for="variablesDropdown">Select a Variable:</label>
-        <select id="variablesDropdown" class="form-select">
-            <option value="">-- Select a Variable --</option>
-            <!-- Options populated dynamically -->
-        </select>
-    </div>
-
-    <!-- Table for UUIDs -->
-    <div id="uuidsSection" style="display: none;">
-        <h3>UUIDs for Selected Variable</h3>
-        <div class="table-responsive">
-            <table class="table table-striped table-dark">
-                <thead>
-                    <tr>
-                        <th>UUID</th>
-                        <th>Data</th>
-                        <th>Created At</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="uuidsTableBody">
-                    <!-- Rows populated dynamically -->
-                </tbody>
-            </table>
-        </div>
-    </div>
+<div class="page-header">
+    <h1>Shared Variables</h1>
 </div>
 
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const gamesDropdown = document.getElementById("gamesDropdown");
-        const variablesDropdown = document.getElementById("variablesDropdown");
-        const variablesSection = document.getElementById("variablesSection");
-        const uuidsSection = document.getElementById("uuidsSection");
-        const uuidsTableBody = document.getElementById("uuidsTableBody");
+<div class="split-pane">
+    <!-- Left pane: Games -->
+    <div class="pane" id="games-pane">
+        <div class="pane-header">Games</div>
+        @if (!Model.Any())
+        {
+            <div class="empty-state">No games yet.</div>
+        }
+        else
+        {
+            <ul class="pane-list">
+                @foreach (var game in Model)
+                {
+                    <li>
+                        <button hx-get="@Url.Action("SharedVariablesVariablesPartial", "Admin", new { gameId = game.Id })"
+                                hx-target="#variables-pane"
+                                hx-swap="innerHTML"
+                                onclick="document.querySelectorAll('#games-pane .pane-list li').forEach(function(e){e.classList.remove('active');}); this.closest('li').classList.add('active'); document.getElementById('data-pane').innerHTML = '<div class=\'empty-state\'>Select a variable</div>';">
+                            @game.Name
+                        </button>
+                    </li>
+                }
+            </ul>
+        }
+    </div>
 
-        // Fetch games on page load
-        fetch("/api/SharedVariable/games")
-            .then(response => response.json())
-            .then(games => {
-                games.forEach(game => {
-                    const option = document.createElement("option");
-                    option.value = game.id;
-                    option.textContent = game.name;
-                    gamesDropdown.appendChild(option);
-                });
-            });
+    <!-- Middle pane: Variables (loaded by htmx) -->
+    <div class="pane" id="variables-pane">
+        <div class="empty-state">Select a game</div>
+    </div>
 
-        // When a game is selected, fetch variables for that game
-        gamesDropdown.addEventListener("change", function () {
-            const gameId = gamesDropdown.value;
-            if (!gameId) {
-                variablesSection.style.display = "none";
-                uuidsSection.style.display = "none";
-                return;
-            }
-
-            fetch(`/api/SharedVariable/variables?gameId=${gameId}`)
-                .then(response => response.json())
-                .then(variables => {
-                    variablesDropdown.innerHTML = '<option value="">-- Select a Variable --</option>';
-                    variables.forEach(variableName => {
-                        const option = document.createElement("option");
-                        option.value = variableName;
-                        option.textContent = variableName;
-                        variablesDropdown.appendChild(option);
-                    });
-                    variablesSection.style.display = "block";
-                });
-        });
-
-        // When a variable is selected, fetch UUIDs and data
-        variablesDropdown.addEventListener("change", function () {
-            const gameId = gamesDropdown.value;
-            const variableName = variablesDropdown.value;
-            if (!variableName) {
-                uuidsSection.style.display = "none";
-                return;
-            }
-
-            fetch(`/api/SharedVariable/uuids?gameId=${gameId}&variableName=${variableName}`)
-                .then(response => response.json())
-                .then(uuids => {
-                    uuidsTableBody.innerHTML = ""; // Clear previous rows
-                    uuids.forEach(uuid => {
-                        const row = `<tr>
-                            <td>${uuid.uuid}</td>
-                            <td>${uuid.data}</td>
-                            <td>${new Date(uuid.createdAt).toLocaleString()}</td>
-                            <td>
-                                <form method="post" action="/api/SharedVariable/delete/${uuid.id}" onsubmit="return confirm('Are you sure you want to delete this variable?');">
-                                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
-                                </form>
-                            </td>
-                        </tr>`;
-                        uuidsTableBody.insertAdjacentHTML("beforeend", row);
-                    });
-                    uuidsSection.style.display = "block";
-                });
-        });
-    });
-</script>
+    <!-- Right pane: Data (loaded by htmx) -->
+    <div class="pane" id="data-pane">
+        <div class="empty-state">Select a variable</div>
+    </div>
+</div>
