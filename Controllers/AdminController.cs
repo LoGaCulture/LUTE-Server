@@ -86,6 +86,7 @@ namespace LUTE_Server.Controllers
         /// Optional filters: gameId, datePreset (all/today/7days/30days/custom), fromDate, toDate.
         /// </summary>
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Download(
             string? type,
             string? gameId,
@@ -231,6 +232,7 @@ namespace LUTE_Server.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Logout()
         {
             // Sign out the user and remove the authentication cookie
@@ -253,6 +255,7 @@ namespace LUTE_Server.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult CreateGame(string name, string description)
         {
             //this is a jwt token, with the userId as a claim
@@ -294,6 +297,7 @@ namespace LUTE_Server.Controllers
 
         // Regenerate token for a game
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult RegenerateToken(string gameId)
         {
             var game = _context.Games.FirstOrDefault(g => g.Id == gameId);
@@ -522,6 +526,7 @@ namespace LUTE_Server.Controllers
         }
 
         [HttpPost("edit/{gameId}")]
+        [ValidateAntiForgeryToken]
         public IActionResult EditGame(Guid gameId, Game updatedGame)
         {
             var game = _context.Games.FirstOrDefault(g => g.Id == gameId.ToString());
@@ -540,6 +545,7 @@ namespace LUTE_Server.Controllers
         }
 
         [HttpPost("delete/{gameId}")]
+        [ValidateAntiForgeryToken]
         public IActionResult DeleteGame(Guid gameId)
         {
             var game = _context.Games.FirstOrDefault(g => g.Id == gameId.ToString());

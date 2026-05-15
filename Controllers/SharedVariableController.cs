@@ -39,9 +39,7 @@ namespace LUTE_Server.Controllers
         {
 
 
-            //log the request
             _logger.LogInformation("Received request to save shared variable");
-            _logger.LogInformation("Secret Key: " + secretKey);
 
             // Validate secret key
             if (string.IsNullOrEmpty(secretKey))
@@ -64,7 +62,7 @@ namespace LUTE_Server.Controllers
                 return BadRequest("No shared variable data provided.");
             }
 
-            _logger.LogInformation("Saving shared variable: {VariableName} for GameId: {GameId}", sharedVariableDto.VariableName, game.Id);
+            _logger.LogInformation("Saving shared variable: {VariableName} for GameId: {GameId}", Sanitize(sharedVariableDto.VariableName), game.Id);
 
             SharedVariable sharedVariable = new SharedVariable
             {
@@ -86,7 +84,7 @@ namespace LUTE_Server.Controllers
 
             if(existingVariable != null)
             {
-                _logger.LogInformation("Updating existing shared variable: {VariableName} for GameId: {GameId}", sharedVariableDto.VariableName, game.Id);
+                _logger.LogInformation("Updating existing shared variable: {VariableName} for GameId: {GameId}", Sanitize(sharedVariableDto.VariableName), game.Id);
                 existingVariable.Data = sharedVariableDto.Data;
                 existingVariable.CreatedAt = sharedVariableDto.CreatedAt;
             }
@@ -151,9 +149,7 @@ namespace LUTE_Server.Controllers
             [FromQuery] int count = 1
         )
         {
-            //log the request
             _logger.LogInformation("Received request to get shared variables");
-            _logger.LogInformation("Secret Key: " + secretKey);
 
             // Validate secret key
             if (string.IsNullOrEmpty(secretKey))
@@ -225,5 +221,8 @@ namespace LUTE_Server.Controllers
         }
 
 
+        /// <summary>Strips CR/LF from user-supplied strings before writing to log, preventing log injection.</summary>
+        private static string Sanitize(string? value) =>
+            (value ?? "").Replace('\r', ' ').Replace('\n', ' ');
     }
 }
