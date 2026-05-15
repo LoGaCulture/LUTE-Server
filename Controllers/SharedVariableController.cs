@@ -197,32 +197,31 @@ namespace LUTE_Server.Controllers
         }
 
         
-        //delete a shared variable through post request with id, only admins can do this
+        // Delete a shared variable. Admin only.
+        // For htmx requests (hx-swap="delete"), returns 200 OK so the row is removed from the DOM.
+        // For regular form posts, redirects back to SharedVariables.
         [HttpPost("delete/{id}")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteSharedVariable(int id)
         {
-            //log the request
-            _logger.LogInformation("Received request to delete shared variable");
-           
-            //find the variable
-            var sharedVariable = await _context.SharedVariables.FindAsync(id);
+            _logger.LogInformation("Received request to delete shared variable {Id}.", id);
 
-            if(sharedVariable == null)
+            var sharedVariable = await _context.SharedVariables.FindAsync(id);
+            if (sharedVariable == null)
             {
                 _logger.LogWarning("Shared variable with id {Id} not found.", id);
                 return NotFound("Shared variable not found.");
             }
 
             _context.SharedVariables.Remove(sharedVariable);
-
             await _context.SaveChangesAsync();
-
             _logger.LogInformation("Deleted shared variable with id {Id}.", id);
 
-            return RedirectToAction("SharedVariables", "Admin");
+            // htmx sends HX-Request header — return 200 so hx-swap="delete" removes the row
+            if (Request.Headers.ContainsKey("HX-Request"))
+                return Ok();
 
-           
+            return RedirectToAction("SharedVariables", "Admin");
         }
 
 
